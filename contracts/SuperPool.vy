@@ -42,7 +42,7 @@ DENOMINATOR: constant(uint256) = 10000
 
 
 @external
-def __init__(_swd: address, _lock_time:):
+def __init__(_swd: address, _lock_time: uint256):
     self.lock = False
     self.owner = msg.sender
     self.burn_percent = 0
