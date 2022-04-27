@@ -2,7 +2,6 @@ import time
 import random
 from ape import project
 from ape import accounts
-ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 class SwapDance(object):
 
