@@ -29,7 +29,7 @@ def deploy(owner, project):
 
     router = owner.deploy(project.SwapRouter, token)
     pot = owner.deploy(project.PoTStation, token)
-    super = owner.deploy(project.SuperPool, token)
+    super = owner.deploy(project.SuperPool, token, 180)
     station = owner.deploy(project.SwapStation, token)
     deployer = owner.deploy(project.Deployer, token, super, pot, station)
     return (

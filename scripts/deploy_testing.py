@@ -26,8 +26,8 @@ class SwapDance(object):
         stake_station = owner.deploy(project.PoTStation, token)
         return stake_station
 
-    def init_super_pool(self, token, owner):
-        super_pool = owner.deploy(project.SuperPool, token)
+    def init_super_pool(self, token, lock_time, owner):
+        super_pool = owner.deploy(project.SuperPool, token, lock_time)
         return super_pool
 
     def init_deployer(self, token, super, proof, station, owner):
@@ -137,7 +137,7 @@ print("check main addr", main_account)
 main_token = deploy.create_token("SwapDance", "DANCE", main_account)
 station_template = deploy.init_station(main_token, main_account)
 stake_template = deploy.init_stake_station(main_token, main_account)
-super_pool = deploy.init_super_pool(main_token, main_account)
+super_pool = deploy.init_super_pool(main_token, main_account, 180)
 deployer = deploy.init_deployer(main_token, super_pool, stake_template, station_template, main_account)
 deploy.deployer_register(station_template, super_pool, stake_template, main_token, deployer, main_account) #register all parts
 router = deploy.init_router("0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6", main_account) #Goerli by default

@@ -24,8 +24,8 @@ class SwapDance(object):
         stake_station = owner.deploy(project.PoTStation, token)
         return stake_station
 
-    def init_super_pool(self, token, owner):
-        super_pool = owner.deploy(project.SuperPool, token)
+    def init_super_pool(self, token, lock_time, owner):
+        super_pool = owner.deploy(project.SuperPool, token, lock_time)
         return super_pool
 
     def init_deployer(self, token, super, proof, station, owner):
@@ -75,7 +75,7 @@ print("check main addr", main_account)
 DANCE_token = deploy.create_token("SwapDance", "DANCE", main_account) ### What is better SWD or DANCE symbol?
 station_template = deploy.init_station(DANCE_token, main_account)
 stake_template = deploy.init_stake_station(DANCE_token, main_account)
-super_pool = deploy.init_super_pool(DANCE_token, main_account)
+super_pool = deploy.init_super_pool(DANCE_token, main_account, 86400)
 deployer = deploy.init_deployer(DANCE_token, super_pool, stake_template, station_template, main_account)
 deploy.deployer_register(station_template, super_pool, stake_template, DANCE_token, deployer, main_account) #register all parts
 router = deploy.init_router(WETH, main_account) #mainnet by default

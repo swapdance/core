@@ -36,17 +36,18 @@ approved_tokens: public(HashMap[address, bool])
 distribution_balances: public(HashMap[uint256, uint256])
 
 # Constants
+TIME: immutable(uint256) # 86400
 SWD_TOKEN: immutable(address)
-TIME: constant(uint256) = 86400 # min time lock for LP-Distribution phase
 DENOMINATOR: constant(uint256) = 10000
 
 
 @external
-def __init__(_swd: address):
+def __init__(_swd: address, _lock_time:):
     self.lock = False
     self.owner = msg.sender
     self.burn_percent = 0
     SWD_TOKEN = _swd
+    TIME = _lock_time
 
 
 @external
