@@ -24,7 +24,7 @@ class SwapDance(object):
         stake_station = owner.deploy(project.PoTStation, token)
         return stake_station
 
-    def init_super_pool(self, token, lock_time, owner):
+    def init_super_pool(self, token, owner, lock_time):
         super_pool = owner.deploy(project.SuperPool, token, lock_time)
         return super_pool
 
