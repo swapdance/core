@@ -1,9 +1,3 @@
-#NOTE. SUPER POOL MIN LOCK TIME IS 1 DAY FOR MAINNET, FOR TEST PURPOSE IT'S MUST BE 180 OR YOU WILL NEED TO WAIT...
-# SET TIME: constant(uint256) = 180
-# IN SUPERPOOL.VY
-
-
-
 import ape
 import time
 from ape import project
