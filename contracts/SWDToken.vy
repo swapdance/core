@@ -56,22 +56,22 @@ DENOMINATOR: constant(uint256) = 10000
 
 @external
 def __init__(
-    _name: String[32], 
-    _symbol: String[32], 
-    _supply: uint256, 
-    _max_gas: uint256, 
-    _base_mint: uint256
+    name: String[32], 
+    symbol: String[32], 
+    supply: uint256, 
+    max_gas: uint256, 
+    base_mint: uint256
 ):
-    init_supply: uint256 = _supply * 10 ** 18
-    self.name = _name
-    self.symbol = _symbol
+    init_supply: uint256 = supply * 10 ** 18
+    self.name = name
+    self.symbol = symbol
     self.decimals = 18
     self.balanceOf[msg.sender] = init_supply
     self.totalSupply = init_supply
     self.owner = msg.sender
     self.salary_rate = 50 # 0.5%
-    BASE_MINT = _base_mint
-    MAX_GAS = _max_gas
+    BASE_MINT = base_mint
+    MAX_GAS = max_gas
     log Transfer(ZERO_ADDRESS, msg.sender, init_supply)
 
 
@@ -156,21 +156,21 @@ def mint_proof_of_trade(trade_count: uint256) -> bool:
 
 
 @external
-def dev_salary(_to: address, _value: uint256):
+def dev_salary(to: address, amount: uint256):
     assert msg.sender == self.owner, "Owner only"
-    assert _to not in [self, ZERO_ADDRESS]
-    assert ((self.totalSupply * self.salary_rate) / DENOMINATOR) >= _value
+    assert to not in [self, ZERO_ADDRESS]
+    assert ((self.totalSupply * self.salary_rate) / DENOMINATOR) >= amount
     assert block.timestamp > self.lock_time, "Salary time"
-    self._mint(_to, _value)
+    self._mint(to, amount)
     self.lock_time = TIME + block.timestamp
-    log Salary(_to, _value)
+    log Salary(to, amount)
 
 
 @external
-def new_deployer(_deployer: address):
+def new_deployer(deployer: address):
     assert msg.sender == self.owner, "Owner only"
     assert not self.done, "Deployer already registred"
-    self.deployer = _deployer
+    self.deployer = deployer
     self.done = True
 
 
@@ -192,33 +192,33 @@ def register_deployer() -> bool:
 
 @external
 def register_pot(
-        _pool: address,
-        _proof_of_trade: address
+        pool: address,
+        proof_of_trade: address
 ) -> bool:
     assert msg.sender.codehash == self.station_code_hash[msg.sender], "Deployer only"
-    assert self.exchange_list[_pool] == ZERO_ADDRESS, "PoT already registred"
-    self.exchange_list[_pool] = _proof_of_trade
+    assert self.exchange_list[pool] == ZERO_ADDRESS, "PoT already registred"
+    self.exchange_list[pool] = proof_of_trade
     return True
 
 
 @external
-def increase_salary_rate(_new_rate: uint256) -> bool:
+def increase_salary_rate(new_rate: uint256) -> bool:
     assert msg.sender == self.owner, "Owner only"
-    assert _new_rate >= 50 or _new_rate <= 200, "Wrong rate"
-    self.salary_rate = _new_rate
-    log NewSalaryRate(msg.sender, _new_rate)
+    assert new_rate >= 50 or new_rate <= 200, "Wrong rate"
+    self.salary_rate = new_rate
+    log NewSalaryRate(msg.sender, new_rate)
     return True
 
 
 @external
-def update_owner(_new_owner: address):
+def update_owner(new_owner: address):
     assert msg.sender == self.owner, "Owner only"
     assert self.owner_agree, "Owner not agree"
     assert self.guardian_agree, "Guardian not agree"
-    self.owner = _new_owner
+    self.owner = new_owner
     self.owner_agree = False
     self.guardian_agree = False
-    log NewOwner(msg.sender, _new_owner)
+    log NewOwner(msg.sender, new_owner)
 
 
 @external
@@ -243,15 +243,15 @@ def update_guardian():
 
 
 @external
-def ask_guardian(_agree: uint256):
+def ask_guardian(agree: uint256):
     assert msg.sender == self.guardian, "Guardian only"
     assert self.owner_agree, "Owner not agree"
-    assert _agree <= 1, "1 Yes, 0 No"
-    self.guardian_agree = convert(_agree, bool)
+    assert agree <= 1, "1 Yes, 0 No"
+    self.guardian_agree = convert(agree, bool)
 
 
 @external
-def ask_owner(_agree: uint256):
+def ask_owner(agree: uint256):
     assert msg.sender == self.owner, "Owner only"
-    assert _agree <= 1, "1 Yes, 0 No"
-    self.owner_agree = convert(_agree, bool)
+    assert agree <= 1, "1 Yes, 0 No"
+    self.owner_agree = convert(agree, bool)

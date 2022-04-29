@@ -5,7 +5,7 @@
 
 interface SUPER:
     def drop_distribution_balances(
-        _tokens: address[10]
+        tokens: address[10]
     ) -> bool: nonpayable
 
 interface ERC20D:
@@ -18,7 +18,7 @@ interface ERC20D:
     def pair_params() -> uint256: view
     def pot_station() -> address: view
     def totalSupply() -> uint256: view
-    def balanceOf(_station: address) -> uint256: view
+    def balanceOf(station: address) -> uint256: view
 
 event NewOwner:
     old_owner: indexed(address)
@@ -50,52 +50,52 @@ MAX_STEPS: constant(int128) = 30
 
 @external
 def __init__(
-    _swd_token: address,
-    _super_pool: address,
-    _pot_station: address,
-    _station: address,
+    swd_token: address,
+    super_pool: address,
+    pot_station: address,
+    station: address,
 ):
     self.owner = msg.sender
-    SWD_TOKEN = _swd_token
-    SUPER_POOL = _super_pool
-    POT_STATION = _pot_station
-    STATION = _station
+    SWD_TOKEN = swd_token
+    SUPER_POOL = super_pool
+    POT_STATION = pot_station
+    STATION = station
     
 
 @external
 def register_new_pool(
-        _token_a: address,
-        _token_b: address,
-        _token_fees_a: uint256,
-        _token_fees_b: uint256,
-        _station_type: uint256
+        token_a: address,
+        token_b: address,
+        token_fees_a: uint256,
+        token_fees_b: uint256,
+        station_type: uint256
 ) -> bool:
     decimal_diff_a: uint256 = empty(uint256)
     decimal_diff_b: uint256 = empty(uint256)
-    decimal_a: uint256 = ERC20D(_token_a).decimals()
-    decimal_b: uint256 = ERC20D(_token_b).decimals()
-    token_pair: uint256 = bitwise_xor(convert(_token_a, uint256), convert(_token_b, uint256))
+    decimal_a: uint256 = ERC20D(token_a).decimals()
+    decimal_b: uint256 = ERC20D(token_b).decimals()
+    token_pair: uint256 = bitwise_xor(convert(token_a, uint256), convert(token_b, uint256))
     assert self.exchange_pairs_list[token_pair] == ZERO_ADDRESS, "Pair already exist"
-    assert _token_a not in [STATION, ZERO_ADDRESS]
-    assert _token_b not in [STATION, ZERO_ADDRESS]
+    assert token_a not in [STATION, ZERO_ADDRESS]
+    assert token_b not in [STATION, ZERO_ADDRESS]
     assert msg.sender == STATION, "Wrong sender"
-    assert _token_a != _token_b, "Token1 = Token2"
-    assert _station_type <= 1, "Wrong station type"
+    assert token_a != token_b, "Token1 = Token2"
+    assert station_type <= 1, "Wrong station type"
     assert decimal_a != 0 and decimal_b != 0, "Token decimal cant be zero"
-    assert _token_fees_a >= 1 and _token_fees_a <= 99, "Wrong Token Fees"
-    assert _token_fees_b >= 1 and _token_fees_b <= 99, "Wrong Token Fees"
+    assert token_fees_a >= 1 and token_fees_a <= 99, "Wrong Token Fees"
+    assert token_fees_b >= 1 and token_fees_b <= 99, "Wrong Token Fees"
 
     if decimal_a == 18 and decimal_b == 18:
         decimal_diff_a = 1
         decimal_diff_b = 1
     elif decimal_a < 18 and decimal_b < 18:
-        decimal_diff_a = pow_mod256(10, 18 - decimal_a)
-        decimal_diff_b = pow_mod256(10, 18 - decimal_b)
+        decimal_diff_a = 10 ** (18 - decimal_a)
+        decimal_diff_b = 10 ** (18 - decimal_b)
     elif decimal_a == 18 and decimal_b < 18:
         decimal_diff_a = 1
-        decimal_diff_b = pow_mod256(10, 18 - decimal_b)
+        decimal_diff_b = 10 ** (18 - decimal_b)
     elif decimal_a < 18 and decimal_b == 18:
-        decimal_diff_a = pow_mod256(10, 18 - decimal_a)
+        decimal_diff_a = 10 ** (18 - decimal_a)
         decimal_diff_b = 1
     else:
         raise "Decimals too big"
@@ -107,8 +107,8 @@ def register_new_pool(
         concat(
             convert(msg.sender, bytes32),
             convert(token_pair, bytes32),
-            convert(_token_a, bytes32),
-            convert(_token_b, bytes32))
+            convert(token_a, bytes32),
+            convert(token_b, bytes32))
             )
     new_pool = create_forwarder_to(STATION, salt = addr_salt)
 
@@ -122,7 +122,7 @@ def register_new_pool(
     # Station lock is 0 by default
     # Proof of trade is False by default
     station_approved: uint256 = 0
-    if self.approved_tokens[_token_a] or self.approved_tokens[_token_b]:
+    if self.approved_tokens[token_a] or self.approved_tokens[token_b]:
         self.approved_for_reward[new_pool] = True
         station_approved = 1
     else:
@@ -130,23 +130,23 @@ def register_new_pool(
 
     proof_of_trade: uint256 = 0
     pair_params: uint256 = proof_of_trade \
-                        + shift(_station_type, 4) \
+                        + shift(station_type, 4) \
                         + shift(0, 6) \
                         + shift(station_approved, 8) \
-                        + shift(_token_fees_a, 16) \
-                        + shift(_token_fees_b, 32) \
+                        + shift(token_fees_a, 16) \
+                        + shift(token_fees_b, 32) \
                         + shift(9, 64) \
                         + shift(decimal_diff_a, 128) \
                         + shift(decimal_diff_b, 192)
 
     pool_response: Bytes[32] = raw_call(
         new_pool,
-        concat(
-            method_id("setup(address,address,address,uint256)"),
-            convert(_token_a, bytes32),
-            convert(_token_b, bytes32),
-            convert(SUPER_POOL, bytes32),
-            convert(pair_params, bytes32),
+        _abi_encode(
+            token_a, 
+            token_b, 
+            SUPER_POOL, 
+            pair_params, 
+            method_id=method_id("setup(address,address,address,uint256)")
         ),
         max_outsize=32,
     )
@@ -155,9 +155,9 @@ def register_new_pool(
 
     super_response: Bytes[32] = raw_call(
         SUPER_POOL,
-        concat(
-            method_id("add_approved_tokens(address)"),
-            convert(new_pool, bytes32),
+        _abi_encode(
+            new_pool, 
+            method_id=method_id("add_approved_tokens(address)")
         ),
         max_outsize=32,
     )
@@ -168,9 +168,9 @@ def register_new_pool(
 
 
 @external
-def register_new_pot(_station: address) -> bool:
-    assert self.approved_for_reward[_station], "Station not approved"
-    assert self.pot_station_list[_station] == ZERO_ADDRESS, "Station has PoT"
+def register_new_pot(station: address) -> bool:
+    assert self.approved_for_reward[station], "Station not approved"
+    assert self.pot_station_list[station] == ZERO_ADDRESS, "Station has PoT"
     assert msg.sender == STATION, "Wrong sender"
 
     new_pot: address = create_forwarder_to(POT_STATION)
@@ -178,9 +178,9 @@ def register_new_pot(_station: address) -> bool:
 
     pot_response: Bytes[32] = raw_call(
         new_pot,
-        concat(
-            method_id("setup(address)"),
-            convert(_station, bytes32),
+        _abi_encode(
+            station, 
+            method_id=method_id("setup(address)")
         ),
         max_outsize=32,
     )
@@ -188,11 +188,11 @@ def register_new_pot(_station: address) -> bool:
         assert convert(pot_response, bool), "PoT setup failed"
 
     station_response: Bytes[32] = raw_call(
-        _station,
-        concat(
-            method_id("stake_review(uint256,address)"),
-            convert(proof_of_trade, bytes32),
-            convert(new_pot, bytes32),
+        station,
+        _abi_encode(
+            proof_of_trade,
+            new_pot,
+            method_id=method_id("stake_review(uint256,address)")
         ),
         max_outsize=32,
     )
@@ -201,17 +201,17 @@ def register_new_pot(_station: address) -> bool:
 
     swd_token_response: Bytes[32] = raw_call(
         SWD_TOKEN,
-        concat(
-            method_id("register_pot(address,address)"),
-            convert(_station, bytes32),
-            convert(new_pot, bytes32),
+        _abi_encode(
+            station,
+            new_pot,
+            method_id=method_id("register_pot(address,address)")
         ),
         max_outsize=32,
     )
     if len(swd_token_response) > 0:
         assert convert(swd_token_response, bool), "SWD response failed"
 
-    self.pot_station_list[_station] = new_pot
+    self.pot_station_list[station] = new_pot
     return True
 
 
@@ -228,12 +228,12 @@ def register_deployer():
 
 
 @external
-def remove_token_pair(_token_a: address, _token_b: address):
+def remove_token_pair(token_a: address, token_b: address):
     assert msg.sender == self.owner, "Owner only"
     lock_status: uint256 = 1
     token_pair: uint256 = bitwise_xor(
-        convert(_token_a, uint256),
-        convert(_token_b, uint256))
+        convert(token_a, uint256),
+        convert(token_b, uint256))
     count: uint256 = self.exchange_info[token_pair]
     station_addr: address = self.exchange_pairs_list[token_pair]
     assert station_addr != ZERO_ADDRESS, "Station not registred"
@@ -245,9 +245,9 @@ def remove_token_pair(_token_a: address, _token_b: address):
         self.pot_station_list[station_addr] = ZERO_ADDRESS
         pot_response: Bytes[32] = raw_call(
             pot_addr,
-            concat(
-                method_id("update_lock(uint256)"),
-                convert(lock_status, bytes32),
+            _abi_encode(
+                lock_status,
+                method_id=method_id("update_lock(uint256)")
             ),
             max_outsize=32,
         )
@@ -256,9 +256,9 @@ def remove_token_pair(_token_a: address, _token_b: address):
 
     station_response: Bytes[32] = raw_call(
         station_addr,
-        concat(
-            method_id("update_lock(uint256)"),
-            convert(lock_status, bytes32),
+        _abi_encode(
+            lock_status,
+            method_id=method_id("update_lock(uint256)")
         ),
         max_outsize=32,
     )
@@ -267,9 +267,9 @@ def remove_token_pair(_token_a: address, _token_b: address):
 
     super_response: Bytes[32] = raw_call(
         SUPER_POOL,
-        concat(
-            method_id("remove_approved_tokens(address)"),
-            convert(station_addr, bytes32),
+        _abi_encode(
+            station_addr,
+            method_id=method_id("remove_approved_tokens(address)")
         ),
         max_outsize=32,
     )
@@ -278,36 +278,36 @@ def remove_token_pair(_token_a: address, _token_b: address):
 
 
 @external
-def add_approved_tokens(_new_token: address):
+def add_approved_tokens(new_token: address):
     assert msg.sender == self.owner, "Owner only"
-    assert _new_token != ZERO_ADDRESS, "ZERO ADDRESS"
-    assert not self.approved_tokens[_new_token]
-    self.approved_tokens[_new_token] = True
+    assert new_token != ZERO_ADDRESS, "ZERO ADDRESS"
+    assert not self.approved_tokens[new_token]
+    self.approved_tokens[new_token] = True
 
 
 @external
-def remove_approved_tokens(_new_token: address):
+def remove_approved_tokens(new_token: address):
     assert msg.sender == self.owner, "Owner only"
-    assert self.approved_tokens[_new_token]
-    self.approved_tokens[_new_token] = False
+    assert self.approved_tokens[new_token]
+    self.approved_tokens[new_token] = False
 
 
 # super pool control
 @external
-def super_pool_drop_balances(_tokens: address[10]) -> bool:
+def super_pool_drop_balances(tokens: address[10]) -> bool:
     assert msg.sender == self.owner, "Owner only"
-    SUPER(SUPER_POOL).drop_distribution_balances(_tokens)
+    SUPER(SUPER_POOL).drop_distribution_balances(tokens)
     return True
 
 
 @external
-def lock_super_pool(_lock: uint256, _expiry: uint256) -> bool:
+def lock_super_pool(lock: uint256) -> bool:
     assert msg.sender == self.owner, "Owner only"
     super_response: Bytes[32] = raw_call(
         SUPER_POOL,
-        concat(
-            method_id("update_lock(uint256)"),
-            convert(_lock, bytes32),
+        _abi_encode(
+            lock,
+            method_id=method_id("update_lock(uint256)")
         ),
         max_outsize=32,
     )
@@ -318,17 +318,17 @@ def lock_super_pool(_lock: uint256, _expiry: uint256) -> bool:
 
 # station control
 @external
-def lock_station(_station: address, _lock: uint256):
+def lock_station(station: address, lock: uint256):
     assert msg.sender == self.owner, "Owner only"
-    assert _lock <= 1, "1 Locked, 0 Unlocked"
-    pot_addr: address = self.pot_station_list[_station]
+    assert lock <= 1, "1 Locked, 0 Unlocked"
+    pot_addr: address = self.pot_station_list[station]
 
     if pot_addr != ZERO_ADDRESS:
         pot_response: Bytes[32] = raw_call(
             pot_addr,
-            concat(
-                method_id("update_lock(uint256)"),
-                convert(_lock, bytes32),
+            _abi_encode(
+                lock,
+                method_id=method_id("update_lock(uint256)")
             ),
             max_outsize=32,
         )
@@ -336,10 +336,10 @@ def lock_station(_station: address, _lock: uint256):
             assert convert(pot_response, bool), "PoT response failed"
 
     station_response: Bytes[32] = raw_call(
-        _station,
-        concat(
-            method_id("update_lock(uint256)"),
-            convert(_lock, bytes32),
+        station,
+        _abi_encode(
+            lock,
+            method_id=method_id("update_lock(uint256)")
         ),
         max_outsize=32,
     )
@@ -348,15 +348,15 @@ def lock_station(_station: address, _lock: uint256):
 
 
 @external
-def unstake_station(_station: address):
+def unstake_station(station: address):
     assert msg.sender == self.owner, "Owner only"
-    assert self.pot_station_list[_station] != ZERO_ADDRESS, "Station hasn't PoT"
+    assert self.pot_station_list[station] != ZERO_ADDRESS, "Station hasn't PoT"
     station_response: Bytes[32] = raw_call(
-        _station,
-        concat(
-            method_id("stake_review(uint256,address)"),
-            convert(0, bytes32),
-            convert(ZERO_ADDRESS, bytes32),
+        station,
+        _abi_encode(
+            empty(uint256),
+            empty(address),
+            method_id=method_id("stake_review(uint256,address)")
         ),
         max_outsize=32,
     )
@@ -365,16 +365,16 @@ def unstake_station(_station: address):
 
 
 @external
-def update_token_fees(_station: address, _token_fees_a: uint256, _token_fees_b: uint256):
+def update_token_fees(station: address, token_fees_a: uint256, token_fees_b: uint256):
     assert msg.sender == self.owner, "Owner only"
-    assert _token_fees_a >= 1 and _token_fees_a <= 99, "Wrong token fees"
-    assert _token_fees_b >= 1 and _token_fees_b <= 99, "Wrong token fees"
+    assert token_fees_a >= 1 and token_fees_a <= 99, "Wrong token fees"
+    assert token_fees_b >= 1 and token_fees_b <= 99, "Wrong token fees"
     station_response: Bytes[32] = raw_call(
-        _station,
-        concat(
-            method_id("token_fees_review(uint256,uint256)"),
-            convert(_token_fees_a, bytes32),
-            convert(_token_fees_b, bytes32),
+        station,
+        _abi_encode(
+            token_fees_a,
+            token_fees_b,
+            method_id=method_id("token_fees_review(uint256,uint256)")
         ),
         max_outsize=32,
     )
@@ -383,14 +383,14 @@ def update_token_fees(_station: address, _token_fees_a: uint256, _token_fees_b: 
 
 
 @external
-def update_station_fees(_station: address, _station_fees: uint256):
+def update_station_fees(station: address, station_fees: uint256):
     assert msg.sender == self.owner, "Owner only"
-    assert _station_fees >= 5 and _station_fees <= 30, "Wrong station fees"
+    assert station_fees >= 5 and station_fees <= 30, "Wrong station fees"
     station_response: Bytes[32] = raw_call(
-        _station,
-        concat(
-            method_id("station_fees_review(uint256)"),
-            convert(_station_fees, bytes32)
+        station,
+        _abi_encode(
+            station_fees,
+            method_id=method_id("station_fees_review(uint256)")
         ),
         max_outsize=32,
     )
@@ -401,13 +401,13 @@ def update_station_fees(_station: address, _station_fees: uint256):
 @external
 @view
 def get_pair(
-    _token_a: address,
-    _token_b: address,
+    token_a: address,
+    token_b: address,
 ) -> (
     uint256,
     address
 ):
-    token_pair: uint256 = bitwise_xor(convert(_token_a, uint256), convert(_token_b, uint256))
+    token_pair: uint256 = bitwise_xor(convert(token_a, uint256), convert(token_b, uint256))
     if self.exchange_pairs_list[token_pair] == ZERO_ADDRESS:
         return (0, ZERO_ADDRESS)
     else:
@@ -418,7 +418,7 @@ def get_pair(
 @external
 @view
 def get_pair_info(
-    _pair_id: uint256
+    pair_id: uint256
 ) -> (
     address, address,
     address, address,
@@ -433,7 +433,7 @@ def get_pair_info(
     uint256, uint256, 
     uint256, uint256
 ):
-    token_pair: uint256 = self.exchange_info[_pair_id]
+    token_pair: uint256 = self.exchange_info[pair_id]
     if token_pair > 0:
         station: address = self.exchange_pairs_list[token_pair]
         
@@ -505,7 +505,7 @@ def get_pair_info(
 @view
 def get_data_block(
     _break: uint256,
-    _position: uint256
+    position: uint256
 ) -> (
     address[30], address[30], 
     address[30], address[30], 
@@ -527,7 +527,7 @@ def get_data_block(
     token_array_decimals_balances: uint256[30] = empty(uint256[30])
     station_pot_array_balances: uint256[30] = empty(uint256[30])
     
-    START_RANGE: int128 = convert(_position, int128)
+    START_RANGE: int128 = convert(position, int128)
     for i in range(START_RANGE, START_RANGE + MAX_STEPS):
         # add break
         if _break != 0:
@@ -603,14 +603,14 @@ def get_data_block(
 
 
 @external
-def update_owner(_new_owner: address):
+def update_owner(new_owner: address):
     assert msg.sender == self.owner, "Owner only"
     assert self.owner_agree, "Owner not agree"
     assert self.guardian_agree, "Guardian not agree"
-    self.owner = _new_owner
+    self.owner = new_owner
     self.owner_agree = False
     self.guardian_agree = False
-    log NewOwner(msg.sender, _new_owner)
+    log NewOwner(msg.sender, new_owner)
 
 
 @external
@@ -635,15 +635,15 @@ def update_guardian():
 
 
 @external
-def ask_guardian(_agree: uint256):
+def ask_guardian(agree: uint256):
     assert msg.sender == self.guardian, "Guardian only"
     assert self.owner_agree, "Owner not agree"
-    assert _agree <= 1, "1 Yes, 0 No"
-    self.guardian_agree = convert(_agree, bool)
+    assert agree <= 1, "1 Yes, 0 No"
+    self.guardian_agree = convert(agree, bool)
 
 
 @external
-def ask_owner(_agree: uint256):
+def ask_owner(agree: uint256):
     assert msg.sender == self.owner, "Owner only"
-    assert _agree <= 1, "1 Yes, 0 No"
-    self.owner_agree = convert(_agree, bool)
+    assert agree <= 1, "1 Yes, 0 No"
+    self.owner_agree = convert(agree, bool)

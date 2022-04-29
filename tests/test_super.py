@@ -1,6 +1,5 @@
 import ape
-import time
-from ape import project
+from ape import project, chain
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 swap_count = 5
 
@@ -18,35 +17,16 @@ def test_deposit(deploy, accounts):
     assert super.balances(accounts[0]) == int(1e18)
     assert super.balances(accounts[1]) == 0
 
-def test_withdraw_with_reward(deploy, accounts):
-    # add acc1, acc2, acc3, acc4
-    # transfer some swd to accs
-    # create 5 pool and transfer fees to super pool
-    # control the results
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
-
-    tokenC = deploy[8]
-    tokenD = deploy[9]
-    tokenF = deploy[10]
-    tokenG = deploy[11]
-    tokenW = deploy[12]
-    tokenZ = deploy[13]
-    token1 = deploy[14]
-    token2 = deploy[15]
-    token3 = deploy[16]
-    token4 = deploy[17]
-    token5 = deploy[18]
-    token6 = deploy[19]
-    token7 = deploy[20]
-    token8 = deploy[21]
-    token9 = deploy[22]
-    token10 = deploy[23]
-
+def test_withdraw_with_reward(
+        deployer, station, token,
+        tokenA, tokenB, tokenC,
+        tokenD, tokenF, tokenG,
+        tokenW, tokenZ, super,
+        token1, token2, token3,
+        token4, token5, token6,
+        token7, token8, token9,
+        token10, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -292,7 +272,7 @@ def test_withdraw_with_reward(deploy, accounts):
     # user 4 reward 0.00277918479
     # user 5 reward 0.00406555032
 
-    deployer.lock_super_pool(1, int(1e18), sender=accounts[0])
+    deployer.lock_super_pool(1, sender=accounts[0])
 
     old_bal1 = station1.balanceOf(super)
     old_bal2 = station2.balanceOf(super)
@@ -357,11 +337,11 @@ def test_withdraw_with_reward(deploy, accounts):
     # test burn function
     # unlock to increase burn percent
     with ape.reverts():
-        deployer.lock_super_pool(0, int(1e18), sender=accounts[0])
+        deployer.lock_super_pool(0, sender=accounts[0])
 
-    time.sleep(181)
+    chain.pending_timestamp += 181
 
-    deployer.lock_super_pool(0, int(1e18), sender=accounts[0])
+    deployer.lock_super_pool(0, sender=accounts[0])
     # make some swaps to receive station fees
     k = 0
     while k < 10:
@@ -441,7 +421,7 @@ def test_withdraw_with_reward(deploy, accounts):
     super.deposit(int(1024e18), int(1e18), sender=accounts[5])
     assert super.balances(accounts[5]) == 1024e18
 
-    deployer.lock_super_pool(1, int(1e18), sender=accounts[0])
+    deployer.lock_super_pool(1, sender=accounts[0])
 
 
     old_bal1 = station1.balanceOf(super)
@@ -503,37 +483,34 @@ def test_withdraw_with_reward(deploy, accounts):
     assert station5.balanceOf(accounts[5]) >= 0.00406555032e18 + 0.00040655503e18
     # -1% burn
     assert token.balanceOf(accounts[1]) == (int(1000e18) - int(1000e18)/100)
-    assert token.balanceOf(accounts[2]) == (int(825e18) - int(825e18)/100)
+    assert token.balanceOf(accounts[2]) == int(816.75e18)
     assert token.balanceOf(accounts[3]) == (int(1000e18) - int(1000e18)/100)
-    assert token.balanceOf(accounts[4]) == (int(700e18) - int(700e18)/100)
-    assert token.balanceOf(accounts[5]) == (int(1024e18) - int(1024e18)/100)
+    assert token.balanceOf(accounts[4]) == int(693e18)
+    assert token.balanceOf(accounts[5]) == int(1013.76e18)
 
     with ape.reverts():
-        deployer.lock_super_pool(0, int(1e18), sender=accounts[0])
+        deployer.lock_super_pool(0, sender=accounts[0])
 
-    time.sleep(181)
+    chain.pending_timestamp += 181
 
-    deployer.lock_super_pool(0, int(1e18), sender=accounts[0])
+    deployer.lock_super_pool(0, sender=accounts[0])
 
     token.approve(super, int(10e18), sender=accounts[1])
     super.deposit(10e18, int(1e18), sender=accounts[1])
 
-    deployer.lock_super_pool(1, int(1e18), sender=accounts[0])
+    deployer.lock_super_pool(1, sender=accounts[0])
     # make some swaps to receive station fees
     with ape.reverts():
-        deployer.lock_super_pool(0, int(1e18), sender=accounts[0])
+        deployer.lock_super_pool(0, sender=accounts[0])
 
-    time.sleep(181)
-    deployer.lock_super_pool(0, int(1e18), sender=accounts[0])
-    deployer.lock_super_pool(1, int(1e18), sender=accounts[0])
-    time.sleep(181)
+    chain.pending_timestamp += 181
+
+    deployer.lock_super_pool(0, sender=accounts[0])
+    deployer.lock_super_pool(1, sender=accounts[0])
 
 
-def test_withdraw_without_reward(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    super = deploy[2]
+def test_withdraw_without_reward(deployer, station, token, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])

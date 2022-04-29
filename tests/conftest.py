@@ -1,48 +1,102 @@
 import pytest
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def owner(accounts):
     return accounts[0]
 
-@pytest.fixture
-def deploy(owner, project):
-    token = owner.deploy(project.SWDToken, "SwapDance", "DANCE", 10000, 30000000, 1000000000)
-    tokenA = owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
-    tokenB = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    tokenC = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    tokenD = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    tokenF = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    tokenG = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    tokenW = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    tokenZ = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    token1 = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    token2 = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    token3 = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    token4 = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    token5 = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    token6 = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    token7 = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    token8 = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    token9 = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
-    token10 = owner.deploy(project.SWDToken, "BToken", "BTK", 100000, 30000000, 1000000000)
+@pytest.fixture(scope="session")
+def token(project, owner):
+    return owner.deploy(project.SWDToken, "SwapDance", "DANCE", 10000, 30000000, 1000000000)
 
+@pytest.fixture(scope="session")
+def router(project, owner, token):
+    return owner.deploy(project.SwapRouter, token)
 
-    router = owner.deploy(project.SwapRouter, token)
-    pot = owner.deploy(project.PoTStation, token)
-    super = owner.deploy(project.SuperPool, token, 180)
-    station = owner.deploy(project.SwapStation, token)
-    deployer = owner.deploy(project.Deployer, token, super, pot, station)
-    return (
-        deployer, pot,
-        super, station,
-        token, tokenA,
-        tokenB, router,
-        tokenC, tokenD,
-        tokenF, tokenG,
-        tokenW, tokenZ,
-        token1, token2,
-        token3, token4,
-        token5, token6,
-        token7, token8,
-        token9, token10
-    )
+@pytest.fixture(scope="session")
+def pot(project, owner, token):
+    return owner.deploy(project.PoTStation, token)
+
+@pytest.fixture(scope="session")
+def super(project, owner, token):
+    return owner.deploy(project.SuperPool, token, 180)
+
+@pytest.fixture(scope="session")
+def station(project, owner, token):
+    return owner.deploy(project.SwapStation, token)
+
+@pytest.fixture(scope="session")
+def deployer(project, owner, token, super, pot, station):
+    return owner.deploy(project.Deployer, token, super, pot, station)
+
+### MORE TOKENS ###
+@pytest.fixture(scope="session")
+def token1(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def token1(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def token2(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def token3(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def token4(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def token5(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def token6(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def token8(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def token9(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def token10(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def tokenA(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def tokenB(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def tokenC(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def tokenD(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def tokenF(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def tokenG(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def tokenW(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+
+@pytest.fixture(scope="session")
+def tokenZ(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)

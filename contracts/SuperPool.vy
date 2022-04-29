@@ -42,33 +42,33 @@ DENOMINATOR: constant(uint256) = 10000
 
 
 @external
-def __init__(_swd: address, _lock_time: uint256):
+def __init__(swd: address, lock_time: uint256):
     self.lock = False
     self.owner = msg.sender
     self.burn_percent = 0
-    SWD_TOKEN = _swd
-    TIME = _lock_time
+    SWD_TOKEN = swd
+    TIME = lock_time
 
 
 @external
-def update_owner(_new_owner: address) -> bool:
+def update_owner(new_owner: address) -> bool:
     assert msg.sender == self.owner, "Deployer only"
-    self.owner = _new_owner
-    log NewOwner(msg.sender, _new_owner)
+    self.owner = new_owner
+    log NewOwner(msg.sender, new_owner)
     return True
 
 
 @external
-def update_lock(_lock: uint256) -> bool:
+def update_lock(lock: uint256) -> bool:
     # NOTE. Unlock(0) - Deposits
     # Lock(1) - Distribution
-    assert _lock <= 1, "1 Locked, 0 Unlocked"
+    assert lock <= 1, "1 Locked, 0 Unlocked"
     assert msg.sender == self.owner, "Deployer only"
     assert block.timestamp > self.lock_time, "min lock time"
-    assert convert(_lock, bool) != self.lock, "Already this phase"
-    self.lock = convert(_lock, bool)
+    assert convert(lock, bool) != self.lock, "Already this phase"
+    self.lock = convert(lock, bool)
     
-    if _lock == 0:
+    if lock == 0:
         self.total_balance = 0
         if self.burn_percent != 10000:
             self.burn_percent += 100 # +1%
@@ -80,59 +80,59 @@ def update_lock(_lock: uint256) -> bool:
         self.cycle_count += 1
         self.lock_time = TIME + block.timestamp
 
-    log LockPool(msg.sender, _lock)
+    log LockPool(msg.sender, lock)
     return True
 
 
 @external
-def add_approved_tokens(_new_token: address) -> bool:
+def add_approved_tokens(new_token: address) -> bool:
     assert msg.sender == self.owner, "Deployer only"
-    assert _new_token != ZERO_ADDRESS, "ZERO ADDRESS"
-    assert not self.approved_tokens[_new_token]
-    self.approved_tokens[_new_token] = True
+    assert new_token != ZERO_ADDRESS, "ZERO ADDRESS"
+    assert not self.approved_tokens[new_token]
+    self.approved_tokens[new_token] = True
     self.tokens_count += 1
     return True
 
 
 @external
-def remove_approved_tokens(_new_token: address) -> bool:
+def remove_approved_tokens(new_token: address) -> bool:
     assert msg.sender == self.owner, "Deployer only"
-    assert self.approved_tokens[_new_token]
-    self.approved_tokens[_new_token] = False
+    assert self.approved_tokens[new_token]
+    self.approved_tokens[new_token] = False
     self.tokens_count -= 1
     return True
 
 
 @external
-@nonreentrant("R")
-def deposit(_amount: uint256, _expiry: uint256) -> bool:
-    assert _amount > 0, "Zero deposit"
+@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_super_crazy")
+def deposit(amount: uint256, expiry: uint256) -> bool:
+    assert amount > 0, "Zero deposit"
     assert not self.lock, "Pool locked"
-    assert _expiry >= block.timestamp, "Expiry Time"
+    assert expiry >= block.timestamp, "Expiry Time"
     response_in: Bytes[32] = raw_call(
         SWD_TOKEN,
-        concat(
-            method_id("transferFrom(address,address,uint256)"),
-            convert(msg.sender, bytes32),
-            convert(self, bytes32),
-            convert(_amount, bytes32),
+        _abi_encode(
+            msg.sender,
+            self,
+            amount,
+            method_id=method_id("transferFrom(address,address,uint256)")
         ),
         max_outsize=32,
     )
     if len(response_in) > 0:
         assert convert(response_in, bool), "SWD transfer failed!"
     # add Balance to var
-    self.balances[msg.sender] += _amount
+    self.balances[msg.sender] += amount
     return True
 
 
 @external
-@nonreentrant("R")
-def get_reward_and_withdraw(tokens_map: address[10], _expiry: uint256):
+@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_super_crazy")
+def get_reward_and_withdraw(tokens_map: address[10], expiry: uint256):
     token_array: address[10] = empty(address[10]) # check addresses on doubles
     idx: uint256 = 0
     assert self.lock, "Pool unlocked"
-    assert _expiry >= block.timestamp, "Expiry Time"
+    assert expiry >= block.timestamp, "Expiry Time"
     old_balance: uint256 = self.balances[msg.sender]
     assert old_balance > 0, "User balance zero"
     self.balances[msg.sender] = 0
@@ -146,9 +146,9 @@ def get_reward_and_withdraw(tokens_map: address[10], _expiry: uint256):
         burn_fees = (old_balance * burn) / DENOMINATOR
         swd_token_burn: Bytes[32] = raw_call(
             SWD_TOKEN,
-            concat(
-                method_id("burn(uint256)"),
-                convert(burn_fees, bytes32),
+            _abi_encode(
+                burn_fees,
+                method_id=method_id("burn(uint256)")
             ),
             max_outsize=32,
         )
@@ -160,10 +160,10 @@ def get_reward_and_withdraw(tokens_map: address[10], _expiry: uint256):
     if balance_after_burn > 0: 
         swd_token_response: Bytes[32] = raw_call(
             SWD_TOKEN,
-            concat(
-                method_id("transfer(address,uint256)"),
-                convert(msg.sender, bytes32),
-                convert(balance_after_burn, bytes32),
+            _abi_encode(
+                msg.sender,
+                balance_after_burn,
+                method_id=method_id("transfer(address,uint256)")
             ),
             max_outsize=32,
         )
@@ -206,10 +206,10 @@ def get_reward_and_withdraw(tokens_map: address[10], _expiry: uint256):
         # transfer reward
         reward_out_response: Bytes[32] = raw_call(
             token,
-            concat(
-                method_id("transfer(address,uint256)"),
-                convert(msg.sender, bytes32),
-                convert(user_reward, bytes32),
+            _abi_encode(
+                msg.sender,
+                user_reward,
+                method_id=method_id("transfer(address,uint256)")
             ),
             max_outsize=32,
         )
@@ -221,19 +221,19 @@ def get_reward_and_withdraw(tokens_map: address[10], _expiry: uint256):
 
 
 @external
-@nonreentrant("R")
-def withdraw_without_reward(_expiry: uint256):
-    assert _expiry >= block.timestamp, "Expiry Time"
+@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_super_crazy")
+def withdraw_without_reward(expiry: uint256):
+    assert expiry >= block.timestamp, "Expiry Time"
     assert not self.lock, "Pool locked"
     old_balance: uint256 = self.balances[msg.sender]
     assert old_balance > 0, "Zero balance"
     self.balances[msg.sender] = 0
     swd_response: Bytes[32] = raw_call(
         SWD_TOKEN,
-        concat(
-            method_id("transfer(address,uint256)"),
-            convert(msg.sender, bytes32),
-            convert(old_balance, bytes32),
+        _abi_encode(
+            msg.sender,
+            old_balance,
+            method_id=method_id("transfer(address,uint256)")
         ),
         max_outsize=32,
     )
@@ -265,8 +265,8 @@ def drop_distribution_balances(tokens_map: address[10]):
 @external
 @view
 def check_estimate_reward(
-    _amount: uint256, 
-    _token_to_check: address
+    amount: uint256, 
+    token_to_check: address
 ) -> uint256:
 
     SWDB: uint256 = empty(uint256)
@@ -278,11 +278,11 @@ def check_estimate_reward(
         SWDB = self.total_balance
         cycle: uint256 = self.cycle_count
         user_balance: uint256 = self.balances[msg.sender]
-        token_cycle_id: uint256 = bitwise_xor(cycle, convert(_token_to_check, uint256))
+        token_cycle_id: uint256 = bitwise_xor(cycle, convert(token_to_check, uint256))
         # read token balance
         token_balance = self.distribution_balances[token_cycle_id]
         if token_balance == 0:
-            token_balance = ERC20(_token_to_check).balanceOf(self)
+            token_balance = ERC20(token_to_check).balanceOf(self)
             token_balance = token_balance - (token_balance / 10)
 
         user_reward = user_balance * token_balance / SWDB
@@ -290,11 +290,11 @@ def check_estimate_reward(
     else:
         # LP-Forming cycle, use _amount to get estimate reward
         SWDB = ERC20(SWD_TOKEN).balanceOf(self)
-        token_balance = ERC20(_token_to_check).balanceOf(self)
+        token_balance = ERC20(token_to_check).balanceOf(self)
         token_balance = token_balance - (token_balance / 10)
 
         if SWDB > 0:
-            user_reward = _amount * token_balance / (SWDB + _amount)
+            user_reward = amount * token_balance / (SWDB + amount)
         else:
             user_reward = token_balance - (token_balance / 10)
     

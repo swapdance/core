@@ -1,14 +1,8 @@
-import time
-from ape import project
+from ape import project, chain
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
-def test_register_new_pool(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_register_new_pool(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -23,13 +17,8 @@ def test_register_new_pool(deploy, accounts):
     assert check_ex == tokenA
 
 
-def test_unstake_station(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_unstake_station(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -58,13 +47,8 @@ def test_unstake_station(deploy, accounts):
     assert check_pot == False
 
 
-def test_register_new_pot(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_register_new_pot(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -89,13 +73,8 @@ def test_register_new_pot(deploy, accounts):
     assert check_ex == True
     assert check_pot == True
 
-def test_remove_token_pair(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_remove_token_pair(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -107,13 +86,8 @@ def test_remove_token_pair(deploy, accounts):
     assert deployer.exchange_info(1) == 0
     assert deployer.exchange_info(2) == 0
 
-def test_lock_station(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_lock_station(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -137,13 +111,8 @@ def test_lock_station(deploy, accounts):
     check_ex = new_exchange.lock()
     assert check_ex == False
 
-def test_update_token_fees(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_update_token_fees(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -165,13 +134,8 @@ def test_update_token_fees(deploy, accounts):
     assert tokenA_fees == 45
     assert tokenB_fees == 50
 
-def test_update_station_fees(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_update_station_fees(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -190,19 +154,15 @@ def test_update_station_fees(deploy, accounts):
     assert station_fees == 30
 
 
-def test_register_deployer(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    super = deploy[2]
+def test_register_deployer(deployer, station, token, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
     deployer.register_deployer(sender=accounts[0])
     assert token.deployer() == deployer
 
-def test_update_owner(deploy, accounts):
-    deployer = deploy[0]
+def test_update_owner(deployer, accounts):
     deployer.set_guardian(accounts[1], sender=accounts[0])
     deployer.ask_owner(1, sender=accounts[0])
     assert deployer.guardian() == accounts[1]
@@ -210,15 +170,11 @@ def test_update_owner(deploy, accounts):
     deployer.update_owner(accounts[3], sender=accounts[0])
     assert deployer.owner() == accounts[3]
 
-def test_add_approved_tokens(deploy, accounts):
-    token = deploy[4]
-    deployer = deploy[0]
+def test_add_approved_tokens(deployer, token, accounts):
     deployer.add_approved_tokens(token, sender=accounts[0])
     assert deployer.approved_tokens(token) is True
 
-def test_remove_approved_tokens(deploy, accounts):
-    token = deploy[4]
-    deployer = deploy[0]
+def test_remove_approved_tokens(deployer, token, accounts):
     deployer.add_approved_tokens(token, sender=accounts[0])
     assert deployer.approved_tokens(token) is True
     deployer.remove_approved_tokens(token, sender=accounts[0])
@@ -226,51 +182,44 @@ def test_remove_approved_tokens(deploy, accounts):
 
     ### super pool control
 
-def test_lock_super_pool(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    super = deploy[2]
+def test_lock_super_pool(deployer, station, token, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
     deployer.register_deployer(sender=accounts[0])
     token.approve(super, int(1e18), sender=accounts[0])
     super.deposit(int(1e18), int(1e18), sender=accounts[0])
-    deployer.lock_super_pool(1, int(1e18), sender=accounts[0])
+    deployer.lock_super_pool(1, sender=accounts[0])
     #init 0
     assert super.lock() == True
-    time.sleep(185)
+    chain.pending_timestamp += 181
 
     ### time.sleep should work but... Brownie test goes fine here.
-    deployer.lock_super_pool(0, int(1e18), sender=accounts[0])
+    deployer.lock_super_pool(0, sender=accounts[0])
     assert super.lock() == False
 
 
-def test_set_deployer_guardian(deploy, accounts):
-    deployer = deploy[0]
+def test_set_deployer_guardian(deployer, accounts):
     deployer.set_guardian(accounts[1], sender=accounts[0])
     assert deployer.guardian() == accounts[1]
 
 
-def test_ask_deployer_guardian(deploy, accounts):
-    deployer = deploy[0]
+def test_ask_deployer_guardian(deployer, accounts):
     deployer.set_guardian(accounts[1], sender=accounts[0])
     deployer.ask_owner(1, sender=accounts[0])
     assert deployer.guardian() == accounts[1]
     deployer.ask_guardian(1, sender=accounts[1])
 
 
-def test_ask_deployer_owner(deploy, accounts):
-    deployer = deploy[0]
+def test_ask_deployer_owner(deployer, accounts):
     deployer.set_guardian(accounts[1], sender=accounts[0])
     assert deployer.guardian() == accounts[1]
     deployer.ask_owner(1, sender=accounts[0])
     deployer.ask_guardian(1, sender=accounts[1])
 
 
-def test_update_deployer_owner(deploy, accounts):
-    deployer = deploy[0]
+def test_update_deployer_owner(deployer, accounts):
     deployer.set_guardian(accounts[1], sender=accounts[0])
     deployer.ask_owner(1, sender=accounts[0])
     assert deployer.guardian() == accounts[1]
@@ -279,8 +228,7 @@ def test_update_deployer_owner(deploy, accounts):
     assert deployer.owner() == accounts[3]
 
 
-def test_update_deployer_guard(deploy, accounts):
-    deployer = deploy[0]
+def test_update_deployer_guard(deployer, accounts):
     deployer.set_guardian(accounts[1], sender=accounts[0])
     deployer.ask_owner(1, sender=accounts[0])
     assert deployer.guardian() == accounts[1]

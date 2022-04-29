@@ -50,11 +50,11 @@ def __init__(_weth: address):
 def safe_transfer_in(token_in: address, amount_in: uint256, _from: address):
     response_in: Bytes[32] = raw_call(
         token_in,
-        concat(
-            method_id("transferFrom(address,address,uint256)"),
-            convert(_from, bytes32),
-            convert(self, bytes32),
-            convert(amount_in, bytes32),
+        _abi_encode(
+            _from,
+            self,
+            amount_in,
+            method_id=method_id("transferFrom(address,address,uint256)")
         ),
         max_outsize=32,
     )
@@ -66,10 +66,10 @@ def safe_transfer_in(token_in: address, amount_in: uint256, _from: address):
 def safe_transfer_out(token_out: address, amount_out: uint256, _to: address):
     response_out: Bytes[32] = raw_call(
         token_out,
-        concat(
-            method_id("transfer(address,uint256)"),
-            convert(_to, bytes32),
-            convert(amount_out, bytes32),
+        _abi_encode(
+            _to,
+            amount_out,
+            method_id=method_id("transfer(address,uint256)")
         ),
         max_outsize=32,
     )
@@ -81,10 +81,10 @@ def safe_transfer_out(token_out: address, amount_out: uint256, _to: address):
 def send_token_approve(token_in: address, amount_in: uint256, station: address):
     approve_token_swap_response: Bytes[32] = raw_call(
         token_in,
-        concat(
-            method_id("approve(address,uint256)"),
-            convert(station, bytes32),
-            convert(amount_in, bytes32),
+        _abi_encode(
+            station,
+            amount_in,
+            method_id=method_id("approve(address,uint256)")
         ),
         max_outsize=32,
     )
@@ -417,9 +417,9 @@ def direct_routing(
         assert response_token_out == WETH, "Must be WETH"
         weth_withdraw_response: Bytes[32] = raw_call(
             WETH,
-            concat(
-                method_id("withdraw(uint256)"),
-                convert(response_amount_out, bytes32),
+            _abi_encode(
+                response_amount_out,
+                method_id=method_id("withdraw(uint256)")
             ),
             max_outsize=32,
         )
@@ -430,10 +430,10 @@ def direct_routing(
         assert response_token_out == _main_token_out, "Main token != Response token out"
         response_out: Bytes[32] = raw_call(
             _main_token_out,
-            concat(
-                method_id("transfer(address,uint256)"),
-                convert(msg.sender, bytes32),
-                convert(response_amount_out, bytes32),
+            _abi_encode(
+                msg.sender,
+                response_amount_out,
+                method_id=method_id("transfer(address,uint256)")
             ),
             max_outsize=32,
         )

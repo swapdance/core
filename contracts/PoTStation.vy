@@ -48,23 +48,23 @@ reward_position: public(HashMap[uint256, uint256])
 
 
 @external
-def __init__(_swd: address):
+def __init__(swd: address):
     # init proof of trade params
     self.lock = True
     self.owner = msg.sender
-    SWD_TOKEN = _swd
+    SWD_TOKEN = swd
 
 
 @external
-def setup(_pool_token: address) -> bool:
+def setup(pool_token: address) -> bool:
     assert self.owner == ZERO_ADDRESS, "Zero Address"
     assert msg.sender == ERC20D(SWD_TOKEN).deployer()
     # Station details
     self.lock = False
     self.owner = msg.sender
     self.max_id_now = 0
-    self.pool_token = _pool_token
-    self.symbol = ERC20D(_pool_token).symbol()
+    self.pool_token = pool_token
+    self.symbol = ERC20D(pool_token).symbol()
     return True
 
 
@@ -82,19 +82,19 @@ def get_round_reward(sender: address) -> uint256:
 
 
 @external
-@nonreentrant("S")
-def stake(_amount_in: uint256, _expiry: uint256):
+@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_crazy")
+def stake(amount_in: uint256, expiry: uint256):
     assert not self.lock, "PoT locked"
-    assert _amount_in > 0, "Deposit Zero"
-    assert _expiry >= block.timestamp, "Expiry Time"
+    assert amount_in > 0, "Deposit Zero"
+    assert expiry >= block.timestamp, "Expiry Time"
     old_balance: uint256 = self.balances[msg.sender]
     response_in: Bytes[32] = raw_call(
         self.pool_token,
-        concat(
-            method_id("transferFrom(address,address,uint256)"),
-            convert(msg.sender, bytes32),
-            convert(self, bytes32),
-            convert(_amount_in, bytes32),
+        _abi_encode(
+            msg.sender,
+            self,
+            amount_in,
+            method_id=method_id("transferFrom(address,address,uint256)")
         ),
         max_outsize=32,
     )
@@ -114,10 +114,10 @@ def stake(_amount_in: uint256, _expiry: uint256):
         if amount_rewards_out > 0:
             response_out_reward: Bytes[32] = raw_call(
                 SWD_TOKEN,
-                concat(
-                    method_id("transfer(address,uint256)"),
-                    convert(msg.sender, bytes32),
-                    convert(amount_rewards_out, bytes32),
+                _abi_encode(
+                    msg.sender,
+                    amount_rewards_out,
+                    method_id=method_id("transfer(address,uint256)")
                 ),
                 max_outsize=32,
             )
@@ -146,17 +146,17 @@ def stake(_amount_in: uint256, _expiry: uint256):
     self.reward_rate[max_id] = reward_rate_now
     self.reward_sum[max_id] = self.reward_sum[max_id - 1] + reward_rate_now
     self.reward_position[max_id] = (actual_reward_balance + total_withdrawn)
-    self.total_deposited_tokens += _amount_in
-    self.balances[msg.sender] += _amount_in
-    log RegisterStaker(msg.sender, _amount_in)
+    self.total_deposited_tokens += amount_in
+    self.balances[msg.sender] += amount_in
+    log RegisterStaker(msg.sender, amount_in)
 
 
 @external
-@nonreentrant("S")
-def get_reward(_expiry: uint256):
+@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_crazy")
+def get_reward(expiry: uint256):
     # NOTE. Without round reward. 
     # Unstake to get all. Or wait.
-    assert _expiry >= block.timestamp, "Expiry Time"
+    assert expiry >= block.timestamp, "Expiry Time"
     max_id: uint256 = self.max_id_now
     amount_out: uint256 = self.balances[msg.sender]
     user_id: uint256 = self.user_position[msg.sender]
@@ -171,10 +171,10 @@ def get_reward(_expiry: uint256):
     if amount_rewards_out > 0:
         reward_out_response: Bytes[32] = raw_call(
             SWD_TOKEN,
-            concat(
-                method_id("transfer(address,uint256)"),
-                convert(msg.sender, bytes32),
-                convert(amount_rewards_out, bytes32),
+            _abi_encode(
+                msg.sender,
+                amount_rewards_out,
+                method_id=method_id("transfer(address,uint256)")
             ),
             max_outsize=32,
         )
@@ -187,22 +187,22 @@ def get_reward(_expiry: uint256):
 
 @external
 @view
-def user_round_reward(_sender: address) -> uint256:
-    if self.balances[_sender] != 0:
-        return (self.get_round_reward(_sender) / (10 ** 18))
+def user_round_reward(sender: address) -> uint256:
+    if self.balances[sender] != 0:
+        return (self.get_round_reward(sender) / (10 ** 18))
     else:
         return 0
 
 
 @external
 @view
-def actual_reward(_sender: address) -> uint256:
-    if self.balances[_sender] != 0:
+def actual_reward(sender: address) -> uint256:
+    if self.balances[sender] != 0:
         actual_reward_balance: uint256 = ERC20(SWD_TOKEN).balanceOf(self)
         max_id: uint256 = self.max_id_now
-        amount_out: uint256 = self.balances[_sender]
-        user_id: uint256 = self.user_position[_sender]
-        round_reward: uint256 = self.get_round_reward(_sender)
+        amount_out: uint256 = self.balances[sender]
+        user_id: uint256 = self.user_position[sender]
+        round_reward: uint256 = self.get_round_reward(sender)
         amount_rewards_out: uint256 = (((
             self.reward_sum[max_id] 
             - self.reward_sum[user_id]) 
@@ -213,9 +213,9 @@ def actual_reward(_sender: address) -> uint256:
 
 
 @external
-@nonreentrant("S")
-def unstake(_expiry: uint256):
-    assert _expiry >= block.timestamp, "Expiry Time"
+@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_crazy")
+def unstake(expiry: uint256):
+    assert expiry >= block.timestamp, "Expiry Time"
     assert self.balances[msg.sender] != 0, "Zero balance"
     max_id: uint256 = self.max_id_now
     amount_out: uint256 = self.balances[msg.sender]
@@ -245,10 +245,10 @@ def unstake(_expiry: uint256):
 
     pool_token_out_response: Bytes[32] = raw_call(
         self.pool_token,
-        concat(
-            method_id("transfer(address,uint256)"),
-            convert(msg.sender, bytes32),
-            convert(old_balance, bytes32),
+        _abi_encode(
+            msg.sender,
+            old_balance,
+            method_id=method_id("transfer(address,uint256)")
         ),
         max_outsize=32,
     )
@@ -259,10 +259,10 @@ def unstake(_expiry: uint256):
 
         reward_out_response: Bytes[32] = raw_call(
             SWD_TOKEN,
-            concat(
-                method_id("transfer(address,uint256)"),
-                convert(msg.sender, bytes32),
-                convert(amount_rewards_out, bytes32),
+            _abi_encode(
+                msg.sender,
+                amount_rewards_out,
+                method_id=method_id("transfer(address,uint256)")
             ),
             max_outsize=32,
         )
@@ -283,17 +283,17 @@ def unstake(_expiry: uint256):
 
 
 @external
-def update_lock(_lock: uint256) -> bool:
+def update_lock(lock: uint256) -> bool:
     assert msg.sender == self.owner, "Deployer only"
-    assert _lock <= 1, "1 Locked, 0 Unlocked"
-    self.lock = convert(_lock, bool)
-    log LockStation(msg.sender, _lock)
+    assert lock <= 1, "1 Locked, 0 Unlocked"
+    self.lock = convert(lock, bool)
+    log LockStation(msg.sender, lock)
     return True
 
 
 @external
-def update_owner(_new_owner: address) -> bool:
+def update_owner(new_owner: address) -> bool:
     assert msg.sender == self.owner, "Deployer only"
-    self.owner = _new_owner
-    log NewOwner(msg.sender, _new_owner)
+    self.owner = new_owner
+    log NewOwner(msg.sender, new_owner)
     return True

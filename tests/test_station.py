@@ -2,13 +2,8 @@ import ape
 from ape import project
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
-def test_initialize(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_initialize(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -22,13 +17,8 @@ def test_initialize(deploy, accounts):
     check_ex = new_exchange.token_a()
     assert check_ex == tokenA
 
-def test_register_pot(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_register_pot(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -53,13 +43,8 @@ def test_register_pot(deploy, accounts):
     assert check_ex == True
     assert check_pot == True
 
-def test_stableswap(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_stableswap(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -95,13 +80,8 @@ def test_stableswap(deploy, accounts):
     station_stable = new_station_info[16]
     assert station_stable == 0
 
-def test_lock_station(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_lock_station(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -126,13 +106,8 @@ def test_lock_station(deploy, accounts):
     check_ex = new_exchange.lock()
     assert check_ex == False
 
-def test_update_token_fees(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_update_token_fees(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -159,13 +134,8 @@ def test_update_token_fees(deploy, accounts):
     assert tokenB_fees == 50
 
 
-def test_update_station_fees(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_update_station_fees(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -189,13 +159,8 @@ def test_update_station_fees(deploy, accounts):
     assert station_fees == 30
 
 
-def test_unstake_station(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_unstake_station(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -230,13 +195,8 @@ def test_unstake_station(deploy, accounts):
 
 
 
-def test_addliquidity(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_addliquidity(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -262,13 +222,8 @@ def test_addliquidity(deploy, accounts):
     lp_token_balance = station.balanceOf(accounts[0])
     print("lp_token_balance", lp_token_balance)
 
-def test_remove_liquidity(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_remove_liquidity(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -298,15 +253,8 @@ def test_remove_liquidity(deploy, accounts):
 
 ###### Check unstable swap.
 
-def test_dynamic_swap(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
-    router = deploy[7]
-
+def test_dynamic_swap(deployer, station, token, tokenA, tokenB, super, router, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -360,14 +308,8 @@ def test_dynamic_swap(deploy, accounts):
 
 ###### Cover all functions to get 100% test rate
 
-def test_force_reward(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
-    router = deploy[7]
+def test_force_reward(deployer, station, token, tokenA, tokenB, super, router, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -404,18 +346,12 @@ def test_force_reward(deploy, accounts):
     assert token.balanceOf(pot_addr) > 0
 
 
-def test_approval(deploy, accounts):
-    station = deploy[3]
+def test_approval(station, accounts):
     station.approve(accounts[1], 500, sender=accounts[0])
     assert station.allowance(accounts[0], accounts[1]) == 500
 
-def test_transfer(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_transfer(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -439,13 +375,8 @@ def test_transfer(deploy, accounts):
     with ape.reverts():
         station.transfer(accounts[2], int(1e24), sender=accounts[1])
 
-def test_transferFrom(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_transferFrom(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])

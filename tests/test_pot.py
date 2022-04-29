@@ -1,13 +1,8 @@
 from ape import project
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
-def test_stake(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_stake(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -40,13 +35,8 @@ def test_stake(deploy, accounts):
     user_reward = pot_station.actual_reward(accounts[0])
     assert user_reward != 0
 
-def test_unstake(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_unstake(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -83,13 +73,11 @@ def test_unstake(deploy, accounts):
     assert station.balanceOf(pot_addr) == 0
     assert station.balanceOf(accounts[0]) == lp_token_balance
 
-def test_update_owner(deploy, accounts):
-    pot = deploy[1]
+def test_update_owner(pot, accounts):
     pot.update_owner(accounts[1], sender=accounts[0])
     assert pot.owner() == accounts[1]
 
-def test_update_lock(deploy, accounts):
-    pot = deploy[1]
+def test_update_lock(pot, accounts):
     pot.update_lock(1, sender=accounts[0])
     assert pot.lock() == True
     pot.update_lock(0, sender=accounts[0])
@@ -97,13 +85,8 @@ def test_update_lock(deploy, accounts):
 
 # Complicated Proof of trade tests
 
-def test_complicated_stake(deploy, accounts):
-    deployer = deploy[0]
-    stable = deploy[3]
-    token = deploy[4]
-    tokenA = deploy[5]
-    tokenB = deploy[6]
-    super = deploy[2]
+def test_complicated_stake(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])

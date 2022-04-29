@@ -128,24 +128,24 @@ def __init__(
 
 @external
 def initialize(
-    _token_a: address,
-    _token_b: address,
-    _token_fees_a: uint256,
-    _token_fees_b: uint256,
-    _station_type: uint256,
-    _expiry: uint256
+    token_a: address,
+    token_b: address,
+    token_fees_a: uint256,
+    token_fees_b: uint256,
+    station_type: uint256,
+    expiry: uint256
 ):
     assert self.pot, "Wrong Copy"
-    assert _expiry >= block.timestamp, "Expiry Time"
+    assert expiry >= block.timestamp, "Expiry Time"
     deployer_response: Bytes[32] = raw_call(
         self.owner,
-        concat(
-            method_id("register_new_pool(address,address,uint256,uint256,uint256)"),
-            convert(_token_a, bytes32),
-            convert(_token_b, bytes32),
-            convert(_token_fees_a, bytes32),
-            convert(_token_fees_b, bytes32),
-            convert(_station_type, bytes32),
+        _abi_encode(
+            token_a,
+            token_b,
+            token_fees_a,
+            token_fees_b,
+            station_type,
+            method_id=method_id("register_new_pool(address,address,uint256,uint256,uint256)")
         ),
         max_outsize=32,
     )
@@ -154,14 +154,14 @@ def initialize(
 
 
 @external
-def initialize_pot_station(_station: address, _expiry: uint256):
+def initialize_pot_station(station: address, expiry: uint256):
     assert self.pot, "Wrong Copy"
-    assert _expiry >= block.timestamp, "Expiry Time"
+    assert expiry >= block.timestamp, "Expiry Time"
     deployer_response: Bytes[32] = raw_call(
         self.owner,
-        concat(
-            method_id("register_new_pot(address)"),
-            convert(_station, bytes32),
+        _abi_encode(
+            station,
+            method_id=method_id("register_new_pot(address)")
         ),
         max_outsize=32,
     )
@@ -171,27 +171,27 @@ def initialize_pot_station(_station: address, _expiry: uint256):
 
 @external
 def setup(
-    _token_a: address,
-    _token_b: address,
-    _super_pool: address,
-    _pair_params: uint256
+    token_a: address,
+    token_b: address,
+    super_pool: address,
+    pair_params: uint256
 ) -> bool:
     assert self.owner == ZERO_ADDRESS, "Zero Address"
     assert msg.sender == ERC20D(SWD_TOKEN).deployer()
     self.pot = False
     self.lock = False
-    self.token_a = _token_a
-    self.token_b = _token_b
+    self.token_a = token_a
+    self.token_b = token_b
     self.owner = msg.sender
-    self.super_pool = _super_pool
-    self.pair_params = _pair_params
+    self.super_pool = super_pool
+    self.pair_params = pair_params
     # LP Token Details
     self.name = concat("Swap.Dance: ", 
-        ERC20D(_token_a).symbol(), "/",
-        ERC20D(_token_b).symbol())
+        ERC20D(token_a).symbol(), "/",
+        ERC20D(token_b).symbol())
     self.symbol = concat(
-        "xDx", ERC20D(_token_a).symbol(),
-        "x", ERC20D(_token_b).symbol())
+        "xDx", ERC20D(token_a).symbol(),
+        "x", ERC20D(token_b).symbol())
     self.totalSupply = 0
     self.decimals = 18
     self.init_time = block.timestamp
@@ -205,7 +205,7 @@ def setup(
         )
     )
 
-    log NewTokenPair(self, _token_a, _token_b, _pair_params)
+    log NewTokenPair(self, token_a, token_b, pair_params)
     return True
 
 
@@ -260,7 +260,7 @@ def permit(
 
 
 @internal
-def shift_params(
+def pack_params(
     staked: uint256, 
     station_type: uint256, 
     locked: uint256, 
@@ -308,7 +308,7 @@ def new_params(
         assert _token_fees_b == 0
         assert _station_fees == 0
         assert _locked == 2
-        new_params = self.shift_params(
+        new_params = self.pack_params(
             _staked, 
             station_type, 
             locked, 
@@ -323,7 +323,7 @@ def new_params(
         assert _staked == 2
         assert _locked == 2
         assert _station_fees == 0
-        new_params = self.shift_params(
+        new_params = self.pack_params(
             staked, 
             station_type, 
             locked, 
@@ -339,7 +339,7 @@ def new_params(
         assert _locked == 2
         assert _token_fees_a == 0
         assert _token_fees_b == 0
-        new_params = self.shift_params(
+        new_params = self.pack_params(
             staked, 
             station_type, 
             locked, 
@@ -355,7 +355,7 @@ def new_params(
         assert _token_fees_a == 0
         assert _token_fees_b == 0
         assert _station_fees == 0
-        new_params = self.shift_params(
+        new_params = self.pack_params(
             staked, 
             station_type, 
             _locked, 
@@ -371,37 +371,37 @@ def new_params(
 
 
 @external
-def stake_review(_staked: uint256, _pot_address: address) -> bool:
+def stake_review(staked: uint256, pot_address: address) -> bool:
     assert msg.sender == self.owner, "Deployer only"
-    assert _staked <= 1, "Wrong Stake Num"
+    assert staked <= 1, "Wrong Stake Num"
     params: uint256 = self.pair_params
-    new_params: uint256 = self.new_params(params, _staked, 2, 0, 0, 0)
+    new_params: uint256 = self.new_params(params, staked, 2, 0, 0, 0)
     self.pair_params = new_params
-    self.pot_station = _pot_address
-    log NewPot(self, _pot_address)
+    self.pot_station = pot_address
+    log NewPot(self, pot_address)
     return True
 
 
 @external
 def token_fees_review(
-    _token_fees_a: uint256,
-    _token_fees_b: uint256
+    token_fees_a: uint256,
+    token_fees_b: uint256
 ) -> bool:
     assert msg.sender == self.owner, "Deployer only"
     params: uint256 = self.pair_params
-    new_params: uint256 = self.new_params(params, 2, 2, _token_fees_a, _token_fees_b, 0)
+    new_params: uint256 = self.new_params(params, 2, 2, token_fees_a, token_fees_b, 0)
     self.pair_params = new_params
-    log NewTokenFees(self.token_a, self.token_b, _token_fees_a, _token_fees_b)
+    log NewTokenFees(self.token_a, self.token_b, token_fees_a, token_fees_b)
     return True
 
 
 @external
-def station_fees_review(_station_fees: uint256) -> bool:
+def station_fees_review(station_fees: uint256) -> bool:
     assert msg.sender == self.owner, "Deployer only"
     params: uint256 = self.pair_params
-    new_params: uint256 = self.new_params(params, 2, 2, 0, 0, _station_fees)
+    new_params: uint256 = self.new_params(params, 2, 2, 0, 0, station_fees)
     self.pair_params = new_params
-    log NewStationFees(self, _station_fees)
+    log NewStationFees(self, station_fees)
     return True
 
 
@@ -417,11 +417,11 @@ def _transfer(sender: address, receiver: address, amount: uint256):
 def safe_transfer_in(token_in: address, amount_in: uint256, _from: address):
     response_in: Bytes[32] = raw_call(
         token_in,
-        concat(
-            method_id("transferFrom(address,address,uint256)"),
-            convert(_from, bytes32),
-            convert(self, bytes32),
-            convert(amount_in, bytes32),
+        _abi_encode(
+            _from,
+            self,
+            amount_in,
+            method_id=method_id("transferFrom(address,address,uint256)")
         ),
         max_outsize=32,
     )
@@ -430,13 +430,13 @@ def safe_transfer_in(token_in: address, amount_in: uint256, _from: address):
 
 
 @internal
-def safe_transfer_out(token_out: address, amount_out: uint256, _to: address):
+def safe_transfer_out(token_out: address, amount_out: uint256, to: address):
     response_out: Bytes[32] = raw_call(
         token_out,
-        concat(
-            method_id("transfer(address,uint256)"),
-            convert(_to, bytes32),
-            convert(amount_out, bytes32),
+        _abi_encode(
+            to,
+            amount_out,
+            method_id=method_id("transfer(address,uint256)")
         ),
         max_outsize=32,
     )
@@ -449,9 +449,9 @@ def mint_reward(staked: uint256, trade_count: uint256):
     if staked == 1 and trade_count > 0:
         minter_response: Bytes[32] = raw_call(
             SWD_TOKEN,
-            concat(
-                method_id("mint_proof_of_trade(uint256)"),
-                convert(trade_count, bytes32),
+            _abi_encode(
+                trade_count,
+                method_id=method_id("mint_proof_of_trade(uint256)")
             ),
             max_outsize=32,
         )
@@ -530,8 +530,8 @@ def _burn(sender: address, amount: uint256):
 
 @internal
 def calc_price(
-    _amount_in: uint256, 
-    _token_in: address
+    amount_in: uint256, 
+    token_in: address
 ) -> (
     address, address, 
     uint256, uint256, 
@@ -556,15 +556,15 @@ def calc_price(
     Z: decimal = empty(decimal)
     AMOUNT_OUT: decimal = empty(decimal)
     
-    if _token_in == token1:
+    if token_in == token1:
         X = convert(balance_a, decimal) / DECIMAL18
         Y = convert(balance_b, decimal) / DECIMAL18
-        Z = convert(_amount_in * decimal_diff_a, decimal) / DECIMAL18
+        Z = convert(amount_in * decimal_diff_a, decimal) / DECIMAL18
         token_fee = convert(token_fees_b, decimal)
-    elif _token_in == token2:
+    elif token_in == token2:
         X = convert(balance_b, decimal) / DECIMAL18
         Y = convert(balance_a, decimal) / DECIMAL18
-        Z = convert(_amount_in * decimal_diff_b, decimal) / DECIMAL18
+        Z = convert(amount_in * decimal_diff_b, decimal) / DECIMAL18
         token_fee = convert(token_fees_a, decimal)
     else:
         raise "Wrong token_in"
@@ -667,18 +667,18 @@ def super_pool_fee(
 
 
 @external
-@nonreentrant("L")
+@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_crazy")
 def swap_tokens(
-    _amount_in: uint256,
-    _amount_out_min: uint256,
-    _token_in: address,
-    _expiry: uint256
+    amount_in: uint256,
+    amount_out_min: uint256,
+    token_in: address,
+    expiry: uint256
 ) -> (
     uint256, address
 ):
     assert not self.lock, "Pool locked"
-    assert _expiry >= block.timestamp, "Expiry Time"
-    assert _amount_in > 0 and _amount_out_min > 0, "Amount = 0"
+    assert expiry >= block.timestamp, "Expiry Time"
+    assert amount_in > 0 and amount_out_min > 0, "Amount = 0"
 
     token1: address = empty(address)
     token2: address = empty(address)
@@ -694,20 +694,20 @@ def swap_tokens(
         staked, amount_out,
         decimal_diff_a, decimal_diff_b, station_type
 
-    ) = self.calc_price(_amount_in, _token_in)
+    ) = self.calc_price(amount_in, token_in)
 
-    if _token_in == token1:
+    if token_in == token1:
         token_out = token2
         amount_out = amount_out / decimal_diff_b
-    elif _token_in == token2:
+    elif token_in == token2:
         amount_out = amount_out / decimal_diff_a
         token_out = token1
     else:
         raise "Wrong token_in"
 
-    assert amount_out >= _amount_out_min, "Amount out < Min amount out"
+    assert amount_out >= amount_out_min, "Amount out < Min amount out"
     
-    self.safe_transfer_in(_token_in, _amount_in, msg.sender)
+    self.safe_transfer_in(token_in, amount_in, msg.sender)
     self.safe_transfer_out(token_out, amount_out, msg.sender)
 
     # update reserves, twap & count of trade 
@@ -745,22 +745,22 @@ def swap_tokens(
         decimal_diff_b
     )
 
-    log TokenSwaps(msg.sender, _token_in, token_out, _amount_in, amount_out)
+    log TokenSwaps(msg.sender, token_in, token_out, amount_in, amount_out)
     return (amount_out, token_out)
 
 
 @external
-@nonreentrant("L")
+@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_crazy")
 def add_liquidity(
-    _token_amount_a: uint256,
-    _amount_a_min: uint256,
-    _token_amount_b: uint256,
-    _amount_b_min: uint256,
-    _expiry: uint256
+    token_amount_a: uint256,
+    amount_a_min: uint256,
+    token_amount_b: uint256,
+    amount_b_min: uint256,
+    expiry: uint256
 ):
     assert not self.lock, "Pool locked"
-    assert _expiry >= block.timestamp, "Expiry Time"
-    assert _amount_a_min > 0 and _amount_b_min > 0, "Amount min = 0"
+    assert expiry >= block.timestamp, "Expiry Time"
+    assert amount_a_min > 0 and amount_b_min > 0, "Amount min = 0"
 
     params: uint256 = self.pair_params
     staked: uint256 = bitwise_and(params, 2 ** 2 - 1)
@@ -779,31 +779,31 @@ def add_liquidity(
 
     D_B_A: decimal = convert(token_balance_a, decimal) / DECIMAL18
     D_B_B: decimal = convert(token_balance_b, decimal) / DECIMAL18
-    D_T_A: decimal = convert(_token_amount_a * decimal_diff_a, decimal) / DECIMAL18
-    D_T_B: decimal = convert(_token_amount_b * decimal_diff_b, decimal) / DECIMAL18
+    D_T_A: decimal = convert(token_amount_a * decimal_diff_a, decimal) / DECIMAL18
+    D_T_B: decimal = convert(token_amount_b * decimal_diff_b, decimal) / DECIMAL18
     
     if station_type == 1:
         if token_balance_a == 0 and token_balance_b == 0:
-            assert _token_amount_a > 0 and _token_amount_b > 0, "Amount a/b = 0"
-            amount_a = _token_amount_a
-            amount_b = _token_amount_b
+            assert token_amount_a > 0 and token_amount_b > 0, "Amount a/b = 0"
+            amount_a = token_amount_a
+            amount_b = token_amount_b
         else:
             d_Y: decimal = (D_T_A * D_B_B) / D_B_A
             if d_Y <= D_T_B:
-                amount_a = _token_amount_a
+                amount_a = token_amount_a
                 amount_b = convert(d_Y * DECIMAL18, uint256) / decimal_diff_b
-                assert amount_b >= _amount_b_min, "Amount B < Min amount B"
+                assert amount_b >= amount_b_min, "Amount B < Min amount B"
             else:
                 d_X: decimal = (D_T_B * D_B_A) / D_B_B
                 assert d_X <= D_T_A
                 amount_a = convert(d_X * DECIMAL18, uint256) / decimal_diff_a
-                amount_b = _token_amount_b
-                assert amount_a >= _amount_a_min, "Amount A < Min amount A"
+                amount_b = token_amount_b
+                assert amount_a >= amount_a_min, "Amount A < Min amount A"
                 
     elif station_type == 0:
         assert D_T_A > 0.0 and D_T_B > 0.0 and D_T_A == D_T_B, "Check amounts"
-        amount_a = _token_amount_a
-        amount_b = _token_amount_b
+        amount_a = token_amount_a
+        amount_b = token_amount_b
     
     # transfer
     self.safe_transfer_in(token_in_a, amount_a, msg.sender)
@@ -872,16 +872,16 @@ def add_liquidity(
 
 
 @external
-@nonreentrant("L")
+@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_crazy")
 def remove_liquidity(
-    _pool_token_amount: uint256,
-    _amount_out_a_min: uint256,
-    _amount_out_b_min: uint256,
-    _expiry: uint256
+    pool_token_amount: uint256,
+    amount_out_a_min: uint256,
+    amount_out_b_min: uint256,
+    expiry: uint256
 ):
-    assert _expiry >= block.timestamp, "Expiry Time"
-    assert self.balanceOf[msg.sender] >= _pool_token_amount, "You want too much"
-    assert _amount_out_a_min > 0 and _amount_out_b_min > 0, "Amount min = 0"
+    assert expiry >= block.timestamp, "Expiry Time"
+    assert self.balanceOf[msg.sender] >= pool_token_amount, "You want too much"
+    assert amount_out_a_min > 0 and amount_out_b_min > 0, "Amount min = 0"
 
     params: uint256 = self.pair_params
     token_out_a: address = self.token_a
@@ -899,7 +899,7 @@ def remove_liquidity(
     D_B_A: decimal = convert(token_balance_a, decimal) / DECIMAL18
     D_B_B: decimal = convert(token_balance_b, decimal) / DECIMAL18
     D_T_S: decimal = convert(total_pool_tokens, decimal) / DECIMAL18
-    D_T_A: decimal = convert(_pool_token_amount, decimal) / DECIMAL18
+    D_T_A: decimal = convert(pool_token_amount, decimal) / DECIMAL18
     
     # mint station fee
     self.super_pool_fee(
@@ -919,10 +919,10 @@ def remove_liquidity(
     amount_out_a: uint256 = convert(d_X * DECIMAL18, uint256) / decimal_diff_a
     amount_out_b: uint256 = convert(d_Y * DECIMAL18, uint256) / decimal_diff_b
 
-    assert amount_out_a >= _amount_out_a_min, "Amount out A < Min amount out A"
-    assert amount_out_b >= _amount_out_b_min, "Amount out B < Min amount out B"
+    assert amount_out_a >= amount_out_a_min, "Amount out A < Min amount out A"
+    assert amount_out_b >= amount_out_b_min, "Amount out B < Min amount out B"
 
-    self._burn(msg.sender, _pool_token_amount)
+    self._burn(msg.sender, pool_token_amount)
     self.safe_transfer_out(token_out_a, amount_out_a, msg.sender)
     self.safe_transfer_out(token_out_b, amount_out_b, msg.sender)
     
@@ -960,21 +960,21 @@ def remove_liquidity(
 
 
 @external
-def update_lock(_lock: uint256) -> bool:
+def update_lock(lock: uint256) -> bool:
     assert not self.pot, "You cant lock template"
     assert msg.sender == self.owner, "Deployer only"
-    self.lock = convert(_lock, bool)
+    self.lock = convert(lock, bool)
     params: uint256 = self.pair_params
-    new_params: uint256 = self.new_params(params, 2, _lock, 0, 0, 0)
+    new_params: uint256 = self.new_params(params, 2, lock, 0, 0, 0)
     self.pair_params = new_params
-    log LockStation(msg.sender, _lock)
+    log LockStation(msg.sender, lock)
     return True
 
 
 @external
-def update_owner(_new_owner: address) -> bool:
+def update_owner(new_owner: address) -> bool:
     assert msg.sender == self.owner, "Deployer only"
     assert self.pot
-    self.owner = _new_owner
-    log NewOwner(msg.sender, _new_owner)
+    self.owner = new_owner
+    log NewOwner(msg.sender, new_owner)
     return True
