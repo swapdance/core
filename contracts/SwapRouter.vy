@@ -63,11 +63,11 @@ def safe_transfer_in(token_in: address, amount_in: uint256, _from: address):
 
 
 @internal
-def safe_transfer_out(token_out: address, amount_out: uint256, _to: address):
+def safe_transfer_out(token_out: address, amount_out: uint256, to: address):
     response_out: Bytes[32] = raw_call(
         token_out,
         _abi_encode(
-            _to,
+            to,
             amount_out,
             method_id=method_id("transfer(address,uint256)")
         ),
@@ -95,14 +95,14 @@ def send_token_approve(token_in: address, amount_in: uint256, station: address):
 @internal
 @view
 def get_price(
-    _station: address,
-    _token_in: address,
-    _amount_in: uint256, 
+    station: address,
+    token_in: address,
+    amount_in: uint256, 
 ) -> uint256:
 
-    token1: address = ERC20D(_station).token_a()
-    token2: address = ERC20D(_station).token_b()
-    params: uint256 = ERC20D(_station).pair_params()
+    token1: address = ERC20D(station).token_a()
+    token2: address = ERC20D(station).token_b()
+    params: uint256 = ERC20D(station).pair_params()
 
     token_fee: decimal = empty(decimal)
     staked: uint256 = bitwise_and(params, 2 ** 2 - 1)
@@ -112,8 +112,8 @@ def get_price(
     decimal_diff_a: uint256 = bitwise_and(shift(params, -128), 2 ** 64 - 1)
     decimal_diff_b: uint256 = shift(params, -192)
 
-    balance_a: uint256 = ERC20(token1).balanceOf(_station) * decimal_diff_a
-    balance_b: uint256 = ERC20(token2).balanceOf(_station) * decimal_diff_b
+    balance_a: uint256 = ERC20(token1).balanceOf(station) * decimal_diff_a
+    balance_b: uint256 = ERC20(token2).balanceOf(station) * decimal_diff_b
 
     X: decimal = empty(decimal)
     Y: decimal = empty(decimal)
@@ -121,16 +121,16 @@ def get_price(
     AMOUNT_OUT: decimal = empty(decimal)
     token_out_decimal: uint256 = empty(uint256)
     
-    if _token_in == token1:
+    if token_in == token1:
         X = convert(balance_a, decimal) / DECIMAL18
         Y = convert(balance_b, decimal) / DECIMAL18
-        Z = convert(_amount_in * decimal_diff_a, decimal) / DECIMAL18
+        Z = convert(amount_in * decimal_diff_a, decimal) / DECIMAL18
         token_fee = convert(token_fees_b, decimal)
         token_out_decimal = decimal_diff_b
-    elif _token_in == token2:
+    elif token_in == token2:
         X = convert(balance_b, decimal) / DECIMAL18
         Y = convert(balance_a, decimal) / DECIMAL18
-        Z = convert(_amount_in * decimal_diff_b, decimal) / DECIMAL18
+        Z = convert(amount_in * decimal_diff_b, decimal) / DECIMAL18
         token_fee = convert(token_fees_a, decimal)
         token_out_decimal = decimal_diff_a
     else:
@@ -156,18 +156,18 @@ def get_price(
 @external
 @view
 def get_amount_out(
-    _station: address,
-    _token_in: address,
-    _amount_in: uint256, 
+    station: address,
+    token_in: address,
+    amount_in: uint256, 
 ) -> uint256:
-    return self.get_price(_station, _token_in, _amount_in)
+    return self.get_price(station, token_in, amount_in)
     
 
 @external
 @view
 def get_amounts_out(
-    _stations: address[10],
-    _tokens_in: address[10],
+    stations: address[10],
+    tokens_in: address[10],
     _amount_in: uint256, 
 ) -> (
     address[10], 
@@ -186,8 +186,8 @@ def get_amounts_out(
     amount_out_array: uint256[10] = empty(uint256[10]) 
 
     for i in range(10):
-        station = _stations[idx]
-        token_in = _tokens_in[idx]
+        station = stations[idx]
+        token_in = tokens_in[idx]
         if station != ZERO_ADDRESS:
             amount_out = self.get_price(station, token_in, amount_in)
             station_array[idx] = station
@@ -211,59 +211,59 @@ def get_amounts_out(
 @external
 @view
 def calc_add_liquidity(
-    _station: address,
-    _token_amount_a: uint256,
-    _token_amount_b: uint256
+    station: address,
+    token_amount_a: uint256,
+    token_amount_b: uint256
 ) -> (uint256, uint256, uint256, uint256):
 
     amount_a: uint256 = empty(uint256)
     amount_b: uint256 = empty(uint256)
     station_reserve: decimal = empty(decimal)
-    token1: address = ERC20D(_station).token_a()
-    token2: address = ERC20D(_station).token_b()
-    params: uint256 = ERC20D(_station).pair_params()
+    token1: address = ERC20D(station).token_a()
+    token2: address = ERC20D(station).token_b()
+    params: uint256 = ERC20D(station).pair_params()
     
     station_type: uint256 = bitwise_and(shift(params, -4), 2 ** 2 - 1)
     station_fees: uint256 = bitwise_and(shift(params, -64), 2 ** 16 - 1)
     decimal_diff_a: uint256 = bitwise_and(shift(params, -128), 2 ** 64 - 1)
     decimal_diff_b: uint256 = shift(params, -192)
 
-    token_balance_a: uint256 = ERC20(token1).balanceOf(_station) * decimal_diff_a
-    token_balance_b: uint256 = ERC20(token2).balanceOf(_station) * decimal_diff_b
+    token_balance_a: uint256 = ERC20(token1).balanceOf(station) * decimal_diff_a
+    token_balance_b: uint256 = ERC20(token2).balanceOf(station) * decimal_diff_b
 
     D_B_A: decimal = convert(token_balance_a, decimal) / DECIMAL18
     D_B_B: decimal = convert(token_balance_b, decimal) / DECIMAL18
-    D_T_A: decimal = convert(_token_amount_a * decimal_diff_a, decimal) / DECIMAL18
-    D_T_B: decimal = convert(_token_amount_b * decimal_diff_b, decimal) / DECIMAL18
+    D_T_A: decimal = convert(token_amount_a * decimal_diff_a, decimal) / DECIMAL18
+    D_T_B: decimal = convert(token_amount_b * decimal_diff_b, decimal) / DECIMAL18
     
     if station_type == 1:
         if token_balance_a == 0 and token_balance_b == 0:
-            assert _token_amount_a > 0 and _token_amount_b > 0, "Amount a/b = 0"
-            amount_a = _token_amount_a
-            amount_b = _token_amount_b
+            assert token_amount_a > 0 and token_amount_b > 0, "Amount a/b = 0"
+            amount_a = token_amount_a
+            amount_b = token_amount_b
         else:
             d_Y: decimal = (D_T_A * D_B_B) / D_B_A
             if d_Y <= D_T_B:
-                amount_a = _token_amount_a
+                amount_a = token_amount_a
                 amount_b = convert(d_Y * DECIMAL18, uint256) / decimal_diff_b
             else:
                 d_X: decimal = (D_T_B * D_B_A) / D_B_B
                 assert d_X <= D_T_A
                 amount_a = convert(d_X * DECIMAL18, uint256) / decimal_diff_a
-                amount_b = _token_amount_b
+                amount_b = token_amount_b
     elif station_type == 0:
-        assert _token_amount_a > 0 and _token_amount_b > 0, "Amount a/b = 0"
-        assert _token_amount_a * decimal_diff_a == _token_amount_b * decimal_diff_b, "Amount a != b"
-        amount_a = _token_amount_a
-        amount_b = _token_amount_b
+        assert token_amount_a > 0 and token_amount_b > 0, "Amount a/b = 0"
+        assert token_amount_a * decimal_diff_a == token_amount_b * decimal_diff_b, "Amount a != b"
+        amount_a = token_amount_a
+        amount_b = token_amount_b
 
     liquidity: decimal = empty(decimal)
-    total_pool_tokens: uint256 = ERC20D(_station).totalSupply()
+    total_pool_tokens: uint256 = ERC20D(station).totalSupply()
     N_T_A: decimal = convert(amount_a * decimal_diff_a, decimal) / DECIMAL18
     N_T_B: decimal = convert(amount_b * decimal_diff_b, decimal) / DECIMAL18
     D_T_S: decimal = convert(total_pool_tokens, decimal) / DECIMAL18
     
-    outdated: decimal = ERC20D(_station).kLast()
+    outdated: decimal = ERC20D(station).kLast()
     SUPERPOOL_LIQUIDITY: decimal = empty(decimal)
 
     #calc potential super pool fee
@@ -301,33 +301,33 @@ def calc_add_liquidity(
 @external
 @view
 def calc_remove_liquidity(
-    _station: address,
-    _pool_token_amount: uint256,
+    station: address,
+    pool_token_amount: uint256,
 ) -> (
     uint256, 
     uint256, 
     uint256
 ):    
     station_reserve: decimal = empty(decimal)
-    token1: address = ERC20D(_station).token_a()
-    token2: address = ERC20D(_station).token_b()
-    params: uint256 = ERC20D(_station).pair_params()
+    token1: address = ERC20D(station).token_a()
+    token2: address = ERC20D(station).token_b()
+    params: uint256 = ERC20D(station).pair_params()
     
     station_type: uint256 = bitwise_and(shift(params, -4), 2 ** 2 - 1)
     station_fees: uint256 = bitwise_and(shift(params, -64), 2 ** 16 - 1)
     decimal_diff_a: uint256 = bitwise_and(shift(params, -128), 2 ** 64 - 1)
     decimal_diff_b: uint256 = shift(params, -192)
     
-    total_pool_tokens: uint256 = ERC20D(_station).totalSupply()
-    token_balance_a: uint256 = ERC20(token1).balanceOf(_station) * decimal_diff_a
-    token_balance_b: uint256 = ERC20(token2).balanceOf(_station) * decimal_diff_b
+    total_pool_tokens: uint256 = ERC20D(station).totalSupply()
+    token_balance_a: uint256 = ERC20(token1).balanceOf(station) * decimal_diff_a
+    token_balance_b: uint256 = ERC20(token2).balanceOf(station) * decimal_diff_b
     
     D_B_A: decimal = convert(token_balance_a, decimal) / DECIMAL18
     D_B_B: decimal = convert(token_balance_b, decimal) / DECIMAL18
     D_T_S: decimal = convert(total_pool_tokens, decimal) / DECIMAL18
-    D_T_A: decimal = convert(_pool_token_amount, decimal) / DECIMAL18
+    D_T_A: decimal = convert(pool_token_amount, decimal) / DECIMAL18
 
-    outdated: decimal = ERC20D(_station).kLast()
+    outdated: decimal = ERC20D(station).kLast()
     SUPERPOOL_LIQUIDITY: decimal = empty(decimal)
 
     #calc potential super pool fee
@@ -358,20 +358,20 @@ def calc_remove_liquidity(
 
 
 @external
-@nonreentrant("R")
+@nonreentrant("Money often costs too much. Buy BTC")
 @payable
 def direct_routing(
-    _expiry: uint256,
-    _main_token_out: address,
-    _stations_path: address[10],
-    _tokens_in_path: address[10],
-    _amounts_in_path: uint256[10],  
-    _amounts_out_path: uint256[10],
+    expiry: uint256,
+    main_token_out: address,
+    stations_path: address[10],
+    tokens_in_path: address[10],
+    amounts_in_path: uint256[10],  
+    amounts_out_path: uint256[10],
 ):
-    station: address = _stations_path[0]
-    token_in: address = _tokens_in_path[0]
-    amount_in: uint256 = _amounts_in_path[0]
-    amount_out: uint256 = _amounts_out_path[0]
+    station: address = stations_path[0]
+    token_in: address = tokens_in_path[0]
+    amount_in: uint256 = amounts_in_path[0]
+    amount_out: uint256 = amounts_out_path[0]
 
     response_token_out: address = empty(address)
     response_amount_out: uint256 = empty(uint256)
@@ -390,13 +390,13 @@ def direct_routing(
             self.send_token_approve(token_in, amount_in, station)
             # swap
             (response_amount_out, response_token_out) = Exchange(
-                station).swap_tokens(amount_in, amount_out, token_in, _expiry)
+                station).swap_tokens(amount_in, amount_out, token_in, expiry)
             assert amount_out <= response_amount_out, "Path amount < Response Amount Out" 
         else:
-            station = _stations_path[i]
-            token_in = _tokens_in_path[i]
-            amount_in = _amounts_in_path[i]
-            amount_out = _amounts_out_path[i]
+            station = stations_path[i]
+            token_in = tokens_in_path[i]
+            amount_in = amounts_in_path[i]
+            amount_out = amounts_out_path[i]
             
             if station == ZERO_ADDRESS:
                 break
@@ -409,11 +409,11 @@ def direct_routing(
             self.send_token_approve(token_in, amount_in, station)
             # swap
             (response_amount_out, response_token_out) = Exchange(
-                station).swap_tokens(amount_in, amount_out, token_in, _expiry)
+                station).swap_tokens(amount_in, amount_out, token_in, expiry)
             assert amount_out <= response_amount_out, "Path amount < Response Amount Out" 
     
     # Loop done
-    if _main_token_out == ZERO_ADDRESS:
+    if main_token_out == ZERO_ADDRESS:
         assert response_token_out == WETH, "Must be WETH"
         weth_withdraw_response: Bytes[32] = raw_call(
             WETH,
@@ -427,9 +427,9 @@ def direct_routing(
             assert convert(weth_withdraw_response, bool), "Withdraw ETH failed!"
         send(msg.sender, response_amount_out)
     else:
-        assert response_token_out == _main_token_out, "Main token != Response token out"
+        assert response_token_out == main_token_out, "Main token != Response token out"
         response_out: Bytes[32] = raw_call(
-            _main_token_out,
+            main_token_out,
             _abi_encode(
                 msg.sender,
                 response_amount_out,

@@ -3,15 +3,11 @@ from ape import project, chain
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 swap_count = 5
 
-def test_update_owner(deploy, accounts):
-    deployer = deploy[0]
-    super = deploy[2]
+def test_update_owner(deployer, super, accounts):
     super.update_owner(deployer, sender=accounts[0])
 
 
-def test_deposit(deploy, accounts):
-    super = deploy[2]
-    token = deploy[4]
+def test_deposit(token, super, accounts):
     token.approve(super, int(1e18), sender=accounts[0])
     super.deposit(int(1e18), int(1e18), sender=accounts[0])
     assert super.balances(accounts[0]) == int(1e18)
@@ -482,11 +478,11 @@ def test_withdraw_with_reward(
     assert station4.balanceOf(accounts[4]) >= 0.00277918479e18 + 0.00305655683e18
     assert station5.balanceOf(accounts[5]) >= 0.00406555032e18 + 0.00040655503e18
     # -1% burn
-    assert token.balanceOf(accounts[1]) == (int(1000e18) - int(1000e18)/100)
-    assert token.balanceOf(accounts[2]) == int(816.75e18)
-    assert token.balanceOf(accounts[3]) == (int(1000e18) - int(1000e18)/100)
-    assert token.balanceOf(accounts[4]) == int(693e18)
-    assert token.balanceOf(accounts[5]) == int(1013.76e18)
+    assert token.balanceOf(accounts[1]) >= (int(1000e18) - int(1000e18)/100)
+    assert token.balanceOf(accounts[2]) >= int(816.75e18)
+    assert token.balanceOf(accounts[3]) >= (int(1000e18) - int(1000e18)/100)
+    assert token.balanceOf(accounts[4]) >= int(693e18)
+    assert token.balanceOf(accounts[5]) >= int(1013.76e18)
 
     with ape.reverts():
         deployer.lock_super_pool(0, sender=accounts[0])

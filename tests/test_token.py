@@ -6,8 +6,7 @@ def test_approval(token, accounts):
     token.approve(accounts[1], 500, sender=accounts[0])
     assert token.allowance(accounts[0], accounts[1]) == 500
 
-def test_transfer(deploy, accounts):
-    token = deploy[4]
+def test_transfer(token, accounts):
     token.transfer(accounts[1], int(1000e18), sender=accounts[0])
     assert token.balanceOf(accounts[0]) == 9000e18
     with ape.reverts():

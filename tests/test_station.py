@@ -253,7 +253,7 @@ def test_remove_liquidity(deployer, station, token, tokenA, tokenB, super, accou
 
 ###### Check unstable swap.
 
-def test_dynamic_swap(deployer, station, token, tokenA, tokenB, super, router, accounts):
+def test_dynamic_swap(deployer, station, token, tokenA, tokenB, super, router, accounts, token1):
     stable = station
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
@@ -280,7 +280,7 @@ def test_dynamic_swap(deployer, station, token, tokenA, tokenB, super, router, a
     station.approve(pot_addr, lp_token_balance, sender=accounts[0])
     pot_station.stake(lp_token_balance, int(1e18), sender=accounts[0])
     # swap tokens to mint swd
-    token1 = deploy[14]
+
     token1.approve(new_station_addr, int(1e18), sender=accounts[0])
     get_amount_out = router.get_amount_out(new_station_addr, tokenA, int(1e18))
     with ape.reverts():

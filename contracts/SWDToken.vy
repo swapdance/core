@@ -36,10 +36,7 @@ guardian_agree: bool
 owner: public(address)
 guardian: public(address)
 deployer: public(address)
-name: public(String[32])
-symbol: public(String[32])
 lock_time: public(uint256)
-decimals: public(uint256)
 totalSupply: public(uint256)
 salary_rate: public(uint256)
 balanceOf: public(HashMap[address, uint256])
@@ -48,6 +45,9 @@ station_code_hash: public(HashMap[address, bytes32])
 allowance: public(HashMap[address, HashMap[address, uint256]])
 
 # Constants
+NAME: immutable(String[32])
+SYMBOL: immutable(String[32])
+DECIMALS: immutable(uint8)
 MAX_GAS: immutable(uint256) # 30000000
 BASE_MINT: immutable(uint256) # 1000000000
 TIME: constant(uint256) = 2419200
@@ -63,9 +63,9 @@ def __init__(
     base_mint: uint256
 ):
     init_supply: uint256 = supply * 10 ** 18
-    self.name = name
-    self.symbol = symbol
-    self.decimals = 18
+    NAME = name
+    SYMBOL = symbol
+    DECIMALS = 18
     self.balanceOf[msg.sender] = init_supply
     self.totalSupply = init_supply
     self.owner = msg.sender
@@ -73,6 +73,24 @@ def __init__(
     BASE_MINT = base_mint
     MAX_GAS = max_gas
     log Transfer(ZERO_ADDRESS, msg.sender, init_supply)
+
+
+@external
+@view
+def name() -> String[32]:
+    return NAME
+
+
+@external
+@view
+def symbol() -> String[32]:
+    return SYMBOL
+
+
+@external
+@view
+def decimals() -> uint8:
+    return DECIMALS
 
 
 @internal

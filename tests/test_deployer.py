@@ -3,6 +3,7 @@ ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 def test_register_new_pool(deployer, station, token, tokenA, tokenB, super, accounts):
     stable = station
+
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -19,6 +20,7 @@ def test_register_new_pool(deployer, station, token, tokenA, tokenB, super, acco
 
 def test_unstake_station(deployer, station, token, tokenA, tokenB, super, accounts):
     stable = station
+
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -49,6 +51,7 @@ def test_unstake_station(deployer, station, token, tokenA, tokenB, super, accoun
 
 def test_register_new_pot(deployer, station, token, tokenA, tokenB, super, accounts):
     stable = station
+
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -75,6 +78,7 @@ def test_register_new_pot(deployer, station, token, tokenA, tokenB, super, accou
 
 def test_remove_token_pair(deployer, station, token, tokenA, tokenB, super, accounts):
     stable = station
+
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -88,6 +92,7 @@ def test_remove_token_pair(deployer, station, token, tokenA, tokenB, super, acco
 
 def test_lock_station(deployer, station, token, tokenA, tokenB, super, accounts):
     stable = station
+
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -113,6 +118,7 @@ def test_lock_station(deployer, station, token, tokenA, tokenB, super, accounts)
 
 def test_update_token_fees(deployer, station, token, tokenA, tokenB, super, accounts):
     stable = station
+
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -136,6 +142,7 @@ def test_update_token_fees(deployer, station, token, tokenA, tokenB, super, acco
 
 def test_update_station_fees(deployer, station, token, tokenA, tokenB, super, accounts):
     stable = station
+
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -156,6 +163,7 @@ def test_update_station_fees(deployer, station, token, tokenA, tokenB, super, ac
 
 def test_register_deployer(deployer, station, token, super, accounts):
     stable = station
+
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])
@@ -163,6 +171,7 @@ def test_register_deployer(deployer, station, token, super, accounts):
     assert token.deployer() == deployer
 
 def test_update_owner(deployer, accounts):
+
     deployer.set_guardian(accounts[1], sender=accounts[0])
     deployer.ask_owner(1, sender=accounts[0])
     assert deployer.guardian() == accounts[1]
@@ -171,10 +180,12 @@ def test_update_owner(deployer, accounts):
     assert deployer.owner() == accounts[3]
 
 def test_add_approved_tokens(deployer, token, accounts):
+
     deployer.add_approved_tokens(token, sender=accounts[0])
     assert deployer.approved_tokens(token) is True
 
 def test_remove_approved_tokens(deployer, token, accounts):
+
     deployer.add_approved_tokens(token, sender=accounts[0])
     assert deployer.approved_tokens(token) is True
     deployer.remove_approved_tokens(token, sender=accounts[0])
@@ -184,6 +195,7 @@ def test_remove_approved_tokens(deployer, token, accounts):
 
 def test_lock_super_pool(deployer, station, token, super, accounts):
     stable = station
+
     super.update_owner(deployer, sender=accounts[0])
     stable.update_owner(deployer, sender=accounts[0])
     token.new_deployer(deployer, sender=accounts[0])

@@ -104,7 +104,7 @@ def remove_approved_tokens(new_token: address) -> bool:
 
 
 @external
-@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_super_crazy")
+@nonreentrant("Vyper is easy to learn, I'm sure, you like it")
 def deposit(amount: uint256, expiry: uint256) -> bool:
     assert amount > 0, "Zero deposit"
     assert not self.lock, "Pool locked"
@@ -127,7 +127,7 @@ def deposit(amount: uint256, expiry: uint256) -> bool:
 
 
 @external
-@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_super_crazy")
+@nonreentrant("Vyper is easy to learn, I'm sure, you like it")
 def get_reward_and_withdraw(tokens_map: address[10], expiry: uint256):
     token_array: address[10] = empty(address[10]) # check addresses on doubles
     idx: uint256 = 0
@@ -221,7 +221,7 @@ def get_reward_and_withdraw(tokens_map: address[10], expiry: uint256):
 
 
 @external
-@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_super_crazy")
+@nonreentrant("Vyper is easy to learn, I'm sure, you like it")
 def withdraw_without_reward(expiry: uint256):
     assert expiry >= block.timestamp, "Expiry Time"
     assert not self.lock, "Pool locked"

@@ -667,7 +667,7 @@ def super_pool_fee(
 
 
 @external
-@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_crazy")
+@nonreentrant("You must gain control over your money or the lack of it will forever control you.")
 def swap_tokens(
     amount_in: uint256,
     amount_out_min: uint256,
@@ -750,7 +750,7 @@ def swap_tokens(
 
 
 @external
-@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_crazy")
+@nonreentrant("You must gain control over your money or the lack of it will forever control you.")
 def add_liquidity(
     token_amount_a: uint256,
     amount_a_min: uint256,
@@ -872,7 +872,7 @@ def add_liquidity(
 
 
 @external
-@nonreentrant("the_name_has_no_runtime_cost_so_you_can_go_crazy")
+@nonreentrant("You must gain control over your money or the lack of it will forever control you.")
 def remove_liquidity(
     pool_token_amount: uint256,
     amount_out_a_min: uint256,
