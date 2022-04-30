@@ -21,6 +21,15 @@ interface ERC20D:
     def symbol() -> String[32]: view
     def deployer() -> address: view
 
+struct Price:
+    token1: address
+    token2: address
+    staked: uint256
+    amount_out: uint256
+    station_type: uint256
+    decimal_diff_a: uint256
+    decimal_diff_b: uint256
+
 event TokenSwaps:
     receiver: indexed(address)
     token_a: address
@@ -532,12 +541,7 @@ def _burn(sender: address, amount: uint256):
 def calc_price(
     amount_in: uint256, 
     token_in: address
-) -> (
-    address, address, 
-    uint256, uint256, 
-    uint256, uint256,
-    uint256
-):
+) -> Price:
     token1: address = self.token_a
     token2: address = self.token_b
     params: uint256 = self.pair_params
@@ -582,13 +586,16 @@ def calc_price(
         AMOUNT_OUT = E3 - (E3 * token_fee / DENOMINATOR)
         if AMOUNT_OUT > Y:
             AMOUNT_OUT = Y - (Z * token_fee / DENOMINATOR)
-
-    return (
-        token1, token2, staked,
-        convert(AMOUNT_OUT * DECIMAL18, uint256),
-        decimal_diff_a, decimal_diff_b, station_type
-    )
-
+    
+    return Price({
+        token1: token1, 
+        token2: token2, 
+        staked: staked, 
+        amount_out:convert(AMOUNT_OUT * DECIMAL18, uint256),
+        station_type: station_type,
+        decimal_diff_a: decimal_diff_a,
+        decimal_diff_b: decimal_diff_b
+    })
 
 @internal
 def update_twap(
@@ -680,21 +687,16 @@ def swap_tokens(
     assert expiry >= block.timestamp, "Expiry Time"
     assert amount_in > 0 and amount_out_min > 0, "Amount = 0"
 
-    token1: address = empty(address)
-    token2: address = empty(address)
-    staked: uint256 = empty(uint256)
-    token_out: address = empty(address)
-    amount_out: uint256 = empty(uint256)
-    station_type: uint256 = empty(uint256)
-    decimal_diff_a: uint256 = empty(uint256)
-    decimal_diff_b: uint256 = empty(uint256)
-    
-    (
-        token1, token2, 
-        staked, amount_out,
-        decimal_diff_a, decimal_diff_b, station_type
+    data_price: Price = self.calc_price(amount_in, token_in)
 
-    ) = self.calc_price(amount_in, token_in)
+    token_out: address = empty(address)
+    token1: address = data_price.token1
+    token2: address = data_price.token2
+    staked: uint256 = data_price.staked
+    amount_out: uint256 = data_price.amount_out
+    station_type: uint256 = data_price.station_type
+    decimal_diff_a: uint256 = data_price.decimal_diff_a
+    decimal_diff_b: uint256 = data_price.decimal_diff_b
 
     if token_in == token1:
         token_out = token2

@@ -10,10 +10,10 @@ interface IWETH:
 
 interface Exchange:
     def swap_tokens(
-        _amount_in: uint256,
-        _amount_out_min: uint256,
-        _token_in: address,
-        _expiry: uint256
+        amount_in: uint256,
+        amount_out_min: uint256,
+        token_in: address,
+        expiry: uint256
     ) -> (uint256, address): nonpayable
 
 interface ERC20D:
@@ -23,7 +23,7 @@ interface ERC20D:
     def decimals() -> uint256: view
     def pair_params() -> uint256: view
     def totalSupply() -> uint256: view
-    def balanceOf(_station: address) -> uint256: view
+    def balanceOf(station: address) -> uint256: view
 
 event ReceiveEth:
     amount: uint256
