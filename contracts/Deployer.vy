@@ -20,6 +20,32 @@ interface ERC20D:
     def totalSupply() -> uint256: view
     def balanceOf(station: address) -> uint256: view
 
+struct PairInfo:
+    station: address
+    token_a: address
+    token_b: address
+    pot_station: address
+    token_name_a: String[32]
+    token_symbol_a: String[32]
+    token_name_b: String[32]
+    token_symbol_b: String[32]
+    token_decimals_a: uint256
+    token_decimals_b: uint256
+    token_balance_a: uint256
+    token_balance_b: uint256
+    station_token_balance: uint256
+    pot_station_swd_balance: uint256
+    params: uint256
+    staked: uint256
+    station_type: uint256
+    locked: uint256
+    station_approved: uint256
+    token_fees_a: uint256
+    token_fees_b: uint256
+    station_fees: uint256
+    decimal_diff_a: uint256
+    decimal_diff_b: uint256
+
 event NewOwner:
     old_owner: indexed(address)
     new_owner: indexed(address)
@@ -417,22 +443,7 @@ def get_pair(
 
 @external
 @view
-def get_pair_info(
-    pair_id: uint256
-) -> (
-    address, address,
-    address, address,
-    String[32], String[32], 
-    String[32], String[32], 
-    uint256, uint256, 
-    uint256, uint256, 
-    uint256, uint256, 
-    uint256, uint256, 
-    uint256, uint256, 
-    uint256, uint256, 
-    uint256, uint256, 
-    uint256, uint256
-):
+def get_pair_info(pair_id: uint256) -> PairInfo:
     token_pair: uint256 = self.exchange_info[pair_id]
     if token_pair > 0:
         station: address = self.exchange_pairs_list[token_pair]
@@ -477,28 +488,59 @@ def get_pair_info(
             shift(params, -128), 2 ** 64 - 1)
         decimal_diff_b: uint256 = shift(params, -192)
 
-        return ( #24
-            station, token_a,
-            token_b, pot_station,
-            token_name_a, token_symbol_a,
-            token_name_b, token_symbol_b,
-            token_decimals_a, token_decimals_b,
-            token_balance_a, token_balance_b,
-            station_token_balance, pot_station_swd_balance,
-            params, staked, station_type, locked, 
-            station_approved, token_fees_a, token_fees_b,
-            station_fees, decimal_diff_a, decimal_diff_b
-        )
+        return PairInfo({
+            station: station, 
+            token_a: token_a,
+            token_b: token_b, 
+            pot_station: pot_station,
+            token_name_a: token_name_a, 
+            token_symbol_a: token_symbol_a,
+            token_name_b: token_name_b, 
+            token_symbol_b: token_symbol_b,
+            token_decimals_a: token_decimals_a, 
+            token_decimals_b: token_decimals_b,
+            token_balance_a: token_balance_a, 
+            token_balance_b: token_balance_b,
+            station_token_balance: station_token_balance, 
+            pot_station_swd_balance: pot_station_swd_balance,
+            params: params, 
+            staked: staked, 
+            station_type: station_type, 
+            locked: locked, 
+            station_approved: station_approved, 
+            token_fees_a: token_fees_a, 
+            token_fees_b: token_fees_b,
+            station_fees: station_fees, 
+            decimal_diff_a: decimal_diff_a, 
+            decimal_diff_b: decimal_diff_b
+        })
     else:
-        return (
-            ZERO_ADDRESS, ZERO_ADDRESS,
-            ZERO_ADDRESS, ZERO_ADDRESS,
-            "ZERO", "ZERO", "ZERO", "ZERO",
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-        )
+        return PairInfo({
+            station: ZERO_ADDRESS, 
+            token_a: ZERO_ADDRESS,
+            token_b: ZERO_ADDRESS, 
+            pot_station: ZERO_ADDRESS,
+            token_name_a: "NONE", 
+            token_symbol_a: "NONE",
+            token_name_b: "NONE", 
+            token_symbol_b: "NONE",
+            token_decimals_a: empty(uint256), 
+            token_decimals_b: empty(uint256),
+            token_balance_a: empty(uint256), 
+            token_balance_b: empty(uint256),
+            station_token_balance: empty(uint256), 
+            pot_station_swd_balance: empty(uint256),
+            params: empty(uint256), 
+            staked: empty(uint256), 
+            station_type: empty(uint256), 
+            locked: empty(uint256), 
+            station_approved: empty(uint256), 
+            token_fees_a: empty(uint256), 
+            token_fees_b: empty(uint256),
+            station_fees: empty(uint256), 
+            decimal_diff_a: empty(uint256), 
+            decimal_diff_b: empty(uint256)
+        })
 
 
 @external
