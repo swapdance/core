@@ -30,6 +30,10 @@ struct Price:
     decimal_diff_a: uint256
     decimal_diff_b: uint256
 
+struct Swapped:
+    amount_out: uint256
+    token_out: address
+
 event TokenSwaps:
     receiver: indexed(address)
     token_a: address
@@ -280,17 +284,17 @@ def pack_params(
     decimal_diff_a: uint256,
     decimal_diff_b: uint256
 ) -> uint256:
-    new_params: uint256 = staked \
-            + shift(station_type, 4) \
-            + shift(locked, 6) \
-            + shift(station_approved, 8) \
-            + shift(token_fees_a, 16) \
-            + shift(token_fees_b, 32) \
-            + shift(station_fees, 64) \
-            + shift(decimal_diff_a, 128) \
-            + shift(decimal_diff_b, 192)
-    return new_params
 
+    pair_params: uint256 = bitwise_or(
+        staked, bitwise_or(
+            shift(station_type, 4), bitwise_or(
+                shift(locked, 6), bitwise_or(
+                    shift(station_approved, 8), bitwise_or(
+                        shift(token_fees_a, 16), bitwise_or(
+                            shift(token_fees_b, 32), bitwise_or(
+                                shift(station_fees, 64), bitwise_or(
+                                    shift(decimal_diff_a, 128), shift(decimal_diff_b, 192)))))))))
+    return pair_params
 
 @internal
 def new_params(
@@ -674,15 +678,13 @@ def super_pool_fee(
 
 
 @external
-@nonreentrant("You must gain control over your money or the lack of it will forever control you.")
+@nonreentrant("The more you learn, the more you earn")
 def swap_tokens(
     amount_in: uint256,
     amount_out_min: uint256,
     token_in: address,
     expiry: uint256
-) -> (
-    uint256, address
-):
+) -> Swapped:
     assert not self.lock, "Pool locked"
     assert expiry >= block.timestamp, "Expiry Time"
     assert amount_in > 0 and amount_out_min > 0, "Amount = 0"
@@ -748,11 +750,16 @@ def swap_tokens(
     )
 
     log TokenSwaps(msg.sender, token_in, token_out, amount_in, amount_out)
-    return (amount_out, token_out)
+    
+    return Swapped({
+        amount_out: amount_out, 
+        token_out: token_out
+    })
+
 
 
 @external
-@nonreentrant("You must gain control over your money or the lack of it will forever control you.")
+@nonreentrant("The more you learn, the more you earn")
 def add_liquidity(
     token_amount_a: uint256,
     amount_a_min: uint256,
@@ -874,7 +881,7 @@ def add_liquidity(
 
 
 @external
-@nonreentrant("You must gain control over your money or the lack of it will forever control you.")
+@nonreentrant("The more you learn, the more you earn")
 def remove_liquidity(
     pool_token_amount: uint256,
     amount_out_a_min: uint256,

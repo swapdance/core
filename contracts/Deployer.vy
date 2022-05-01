@@ -46,6 +46,18 @@ struct PairInfo:
     decimal_diff_a: uint256
     decimal_diff_b: uint256
 
+struct BlockInfo:
+    station_array: address[30]
+    pot_array: address[30]
+    token_array_a: address[30]
+    token_array_b: address[30]
+    token_array_name_a: bytes32[30]
+    token_array_name_b: bytes32[30]
+    token_array_symbols: bytes32[30]
+    pair_params_array: uint256[30]
+    token_array_decimals_balances: uint256[30]
+    station_pot_array_balances: uint256[30]
+
 event NewOwner:
     old_owner: indexed(address)
     new_owner: indexed(address)
@@ -60,11 +72,10 @@ guardian_agree: bool
 owner: public(address)
 guardian: public(address)
 exchange_count: public(uint256)
-approved_tokens: public(HashMap[address, bool])
-approved_for_reward: public(HashMap[address, bool])
-pot_station_list: public(HashMap[address, address])
 exchange_info: public(HashMap[uint256, uint256])
+pot_station_list: public(HashMap[address, address])
 exchange_pairs_list: public(HashMap[uint256, address])
+approved_tokens: public(HashMap[uint256, HashMap[address, bool]])
 
 # Constants
 STATION: immutable(address)
@@ -127,7 +138,7 @@ def register_new_pool(
         raise "Decimals too big"
 
     new_pool: address = ZERO_ADDRESS
-    #station_type: uint256 = 0
+    #
     
     addr_salt: bytes32 = keccak256(
         concat(
@@ -148,22 +159,29 @@ def register_new_pool(
     # Station lock is 0 by default
     # Proof of trade is False by default
     station_approved: uint256 = 0
-    if self.approved_tokens[token_a] or self.approved_tokens[token_b]:
-        self.approved_for_reward[new_pool] = True
+
+    check_token_a: bool = self.approved_tokens[0][token_a]
+    check_token_b: bool = self.approved_tokens[0][token_b]
+    
+    if True in [check_token_a, check_token_b]:
+        self.approved_tokens[1][new_pool] = True
         station_approved = 1
     else:
-        self.approved_for_reward[new_pool] = False
+        self.approved_tokens[1][new_pool] = False
 
-    proof_of_trade: uint256 = 0
-    pair_params: uint256 = proof_of_trade \
-                        + shift(station_type, 4) \
-                        + shift(0, 6) \
-                        + shift(station_approved, 8) \
-                        + shift(token_fees_a, 16) \
-                        + shift(token_fees_b, 32) \
-                        + shift(9, 64) \
-                        + shift(decimal_diff_a, 128) \
-                        + shift(decimal_diff_b, 192)
+    locked: uint256 = 0
+    staked: uint256 = 0
+    station_fees: uint256 = 9
+
+    pair_params: uint256 = bitwise_or(
+        staked, bitwise_or(
+            shift(station_type, 4), bitwise_or(
+                shift(locked, 6), bitwise_or(
+                    shift(station_approved, 8), bitwise_or(
+                        shift(token_fees_a, 16), bitwise_or(
+                            shift(token_fees_b, 32), bitwise_or(
+                                shift(station_fees, 64), bitwise_or(
+                                    shift(decimal_diff_a, 128), shift(decimal_diff_b, 192)))))))))
 
     pool_response: Bytes[32] = raw_call(
         new_pool,
@@ -195,7 +213,7 @@ def register_new_pool(
 
 @external
 def register_new_pot(station: address) -> bool:
-    assert self.approved_for_reward[station], "Station not approved"
+    assert self.approved_tokens[1][station], "Station not approved"
     assert self.pot_station_list[station] == ZERO_ADDRESS, "Station has PoT"
     assert msg.sender == STATION, "Wrong sender"
 
@@ -265,6 +283,7 @@ def remove_token_pair(token_a: address, token_b: address):
     assert station_addr != ZERO_ADDRESS, "Station not registred"
     self.exchange_info[count] = 0
     self.exchange_info[token_pair] = 0
+    self.approved_tokens[1][station_addr] = False
     self.exchange_pairs_list[token_pair] = ZERO_ADDRESS
     pot_addr: address = self.pot_station_list[station_addr]
     if pot_addr != ZERO_ADDRESS:
@@ -307,15 +326,15 @@ def remove_token_pair(token_a: address, token_b: address):
 def add_approved_tokens(new_token: address):
     assert msg.sender == self.owner, "Owner only"
     assert new_token != ZERO_ADDRESS, "ZERO ADDRESS"
-    assert not self.approved_tokens[new_token]
-    self.approved_tokens[new_token] = True
+    assert not self.approved_tokens[0][new_token]
+    self.approved_tokens[0][new_token] = True
 
 
 @external
 def remove_approved_tokens(new_token: address):
     assert msg.sender == self.owner, "Owner only"
-    assert self.approved_tokens[new_token]
-    self.approved_tokens[new_token] = False
+    assert self.approved_tokens[0][new_token]
+    self.approved_tokens[0][new_token] = False
 
 
 # super pool control
@@ -545,16 +564,7 @@ def get_pair_info(pair_id: uint256) -> PairInfo:
 
 @external
 @view
-def get_data_block(
-    _break: uint256,
-    position: uint256
-) -> (
-    address[30], address[30], 
-    address[30], address[30], 
-    bytes32[30], bytes32[30], 
-    bytes32[30], uint256[30], 
-    uint256[30], uint256[30]
-):
+def get_data_block(_break: uint256, position: uint256) -> BlockInfo:
     idx: uint256 = 0
     pot_array: address[30] = empty(address[30])
     station_array: address[30] = empty(address[30])
@@ -634,14 +644,19 @@ def get_data_block(
             token_array_decimals_balances[idx] = tokens_decimals_balances
             
         idx += 1
-
-    return (
-        station_array, pot_array, 
-        token_array_a, token_array_b, 
-        token_array_name_a, token_array_name_b,
-        token_array_symbols, pair_params_array,
-        token_array_decimals_balances, station_pot_array_balances
-    )
+        
+    return BlockInfo({
+        station_array: station_array,
+        pot_array: pot_array,
+        token_array_a: token_array_a,
+        token_array_b: token_array_b,
+        token_array_name_a: token_array_name_a,
+        token_array_name_b: token_array_name_b,
+        token_array_symbols: token_array_symbols,
+        pair_params_array: pair_params_array,
+        token_array_decimals_balances: token_array_decimals_balances,
+        station_pot_array_balances: station_pot_array_balances
+    })
 
 
 @external

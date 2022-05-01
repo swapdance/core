@@ -8,7 +8,6 @@ from vyper.interfaces import ERC20
 interface ERC20D:
     def decimals() -> uint256: view
 
-
 event Reward:
     token: indexed(address)
     receiver: indexed(address)
@@ -104,7 +103,7 @@ def remove_approved_tokens(new_token: address) -> bool:
 
 
 @external
-@nonreentrant("Vyper is easy to learn, I'm sure, you like it")
+@nonreentrant("Life is a game. Money is how we keep score.")
 def deposit(amount: uint256, expiry: uint256) -> bool:
     assert amount > 0, "Zero deposit"
     assert not self.lock, "Pool locked"
@@ -127,7 +126,7 @@ def deposit(amount: uint256, expiry: uint256) -> bool:
 
 
 @external
-@nonreentrant("Vyper is easy to learn, I'm sure, you like it")
+@nonreentrant("Life is a game. Money is how we keep score.")
 def get_reward_and_withdraw(tokens_map: address[10], expiry: uint256):
     token_array: address[10] = empty(address[10]) # check addresses on doubles
     idx: uint256 = 0
@@ -221,7 +220,7 @@ def get_reward_and_withdraw(tokens_map: address[10], expiry: uint256):
 
 
 @external
-@nonreentrant("Vyper is easy to learn, I'm sure, you like it")
+@nonreentrant("Life is a game. Money is how we keep score.")
 def withdraw_without_reward(expiry: uint256):
     assert expiry >= block.timestamp, "Expiry Time"
     assert not self.lock, "Pool locked"

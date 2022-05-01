@@ -82,7 +82,7 @@ def get_round_reward(sender: address) -> uint256:
 
 
 @external
-@nonreentrant("Many people take no care of their money till they come nearly to the end of it, and others do just the same with their time.")
+@nonreentrant("Money, like vodka, turns a person into an eccentric.")
 def stake(amount_in: uint256, expiry: uint256):
     assert not self.lock, "PoT locked"
     assert amount_in > 0, "Deposit Zero"
@@ -152,7 +152,7 @@ def stake(amount_in: uint256, expiry: uint256):
 
 
 @external
-@nonreentrant("Many people take no care of their money till they come nearly to the end of it, and others do just the same with their time.")
+@nonreentrant("Money, like vodka, turns a person into an eccentric.")
 def get_reward(expiry: uint256):
     # NOTE. Without round reward. 
     # Unstake to get all. Or wait.
@@ -213,7 +213,7 @@ def actual_reward(sender: address) -> uint256:
 
 
 @external
-@nonreentrant("Many people take no care of their money till they come nearly to the end of it, and others do just the same with their time.")
+@nonreentrant("Money, like vodka, turns a person into an eccentric.")
 def unstake(expiry: uint256):
     assert expiry >= block.timestamp, "Expiry Time"
     assert self.balances[msg.sender] != 0, "Zero balance"

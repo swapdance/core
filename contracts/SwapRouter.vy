@@ -14,7 +14,7 @@ interface Exchange:
         amount_out_min: uint256,
         token_in: address,
         expiry: uint256
-    ) -> (uint256, address): nonpayable
+    ) -> Swapped: nonpayable
 
 interface ERC20D:
     def kLast() -> decimal: view
@@ -24,6 +24,27 @@ interface ERC20D:
     def pair_params() -> uint256: view
     def totalSupply() -> uint256: view
     def balanceOf(station: address) -> uint256: view
+
+struct Swapped:
+    amount_out: uint256
+    token_out: address
+
+struct AmountsOut:
+    station_array: address[10]
+    tokens_in_array: address[10]
+    amount_in_array: uint256[10]
+    amount_out_array: uint256[10]
+
+struct AddLiquidity:
+    amount_a: uint256
+    amount_b: uint256
+    liquidity: uint256
+    super_pool_liquidity: uint256
+
+struct RemoveLiquidity:
+    amount_out_a: uint256
+    amount_out_b: uint256
+    super_pool_liquidity: uint256
 
 event ReceiveEth:
     amount: uint256
@@ -169,12 +190,7 @@ def get_amounts_out(
     stations: address[10],
     tokens_in: address[10],
     _amount_in: uint256, 
-) -> (
-    address[10], 
-    address[10], 
-    uint256[10], 
-    uint256[10]
-):
+) -> AmountsOut:
     idx: uint256 = 0
     amount_in: uint256 = _amount_in
     station: address = empty(address)
@@ -200,21 +216,48 @@ def get_amounts_out(
 
         idx += 1
         
-    return (
-        station_array, 
-        tokens_in_array, 
-        amount_in_array, 
-        amount_out_array
-    )
+    return AmountsOut({
+        station_array: station_array,
+        tokens_in_array: tokens_in_array,
+        amount_in_array: amount_in_array,
+        amount_out_array: amount_out_array
+    })
     
 
+@internal
+@view
+def super_pool_fees(
+    kLast: decimal,
+    reserves: decimal,
+    decimal_total_sup: decimal,
+    station_fees: uint256
+) -> decimal:
+    outdated: decimal = kLast
+    D_T_S: decimal = decimal_total_sup
+    station_reserve: decimal = reserves
+    SUPERPOOL_LIQUIDITY: decimal = empty(decimal)
+    if station_reserve > 0.0:
+        station_reserve = sqrt(station_reserve)
+        outdated = sqrt(outdated)
+        if station_reserve > outdated:
+            D1: decimal = D_T_S * (station_reserve - outdated)
+            D2: decimal = station_reserve * (convert(station_fees, decimal) / DENOMINATOR) + outdated
+            SUPERPOOL_LIQUIDITY = D1/D2
+            SUPERPOOL_LIQUIDITY = SUPERPOOL_LIQUIDITY / 30.0
+
+    if SUPERPOOL_LIQUIDITY > 0.0:
+        return SUPERPOOL_LIQUIDITY
+    else:
+        return empty(decimal)
+
+        
 @external
 @view
 def calc_add_liquidity(
     station: address,
     token_amount_a: uint256,
     token_amount_b: uint256
-) -> (uint256, uint256, uint256, uint256):
+) -> AddLiquidity:
 
     amount_a: uint256 = empty(uint256)
     amount_b: uint256 = empty(uint256)
@@ -272,15 +315,7 @@ def calc_add_liquidity(
     else:
         station_reserve = D_B_A + D_B_B
 
-    if station_reserve > 0.0:
-        station_reserve = sqrt(station_reserve)
-        outdated = sqrt(outdated)
-        if station_reserve > outdated:
-            D1: decimal = D_T_S * (station_reserve - outdated)
-            D2: decimal = station_reserve * (convert(station_fees, decimal) / DENOMINATOR) + outdated
-            SUPERPOOL_LIQUIDITY = D1/D2
-            if station_type == 0:
-                SUPERPOOL_LIQUIDITY = SUPERPOOL_LIQUIDITY / 10.0
+    SUPERPOOL_LIQUIDITY = self.super_pool_fees(outdated, station_reserve, D_T_S, station_fees)
     
     D_T_S = D_T_S + SUPERPOOL_LIQUIDITY
     # mint LP tokens
@@ -291,11 +326,12 @@ def calc_add_liquidity(
         liquidity2: decimal = N_T_B * D_T_S / D_B_B
         liquidity = min(liquidity1, liquidity2)
 
-    return (
-        amount_a, amount_b, 
-        convert(liquidity * DECIMAL18, uint256), 
-        convert(SUPERPOOL_LIQUIDITY * DECIMAL18, uint256)
-    )
+    return AddLiquidity({
+        amount_a: amount_a,
+        amount_b: amount_b,
+        liquidity: convert(liquidity * DECIMAL18, uint256),
+        super_pool_liquidity: convert(SUPERPOOL_LIQUIDITY * DECIMAL18, uint256)
+    })
     
 
 @external
@@ -303,11 +339,7 @@ def calc_add_liquidity(
 def calc_remove_liquidity(
     station: address,
     pool_token_amount: uint256,
-) -> (
-    uint256, 
-    uint256, 
-    uint256
-):    
+) -> RemoveLiquidity:    
     station_reserve: decimal = empty(decimal)
     token1: address = ERC20D(station).token_a()
     token2: address = ERC20D(station).token_b()
@@ -336,15 +368,7 @@ def calc_remove_liquidity(
     else:
         station_reserve = D_B_A + D_B_B
 
-    if station_reserve > 0.0:
-        station_reserve = sqrt(station_reserve)
-        outdated = sqrt(outdated)
-        if station_reserve > outdated:
-            D1: decimal = D_T_S * (station_reserve - outdated)
-            D2: decimal = station_reserve * (convert(station_fees, decimal) / DENOMINATOR) + outdated
-            SUPERPOOL_LIQUIDITY = D1/D2
-            if station_type == 0:
-                SUPERPOOL_LIQUIDITY = SUPERPOOL_LIQUIDITY / 10.0
+    SUPERPOOL_LIQUIDITY = self.super_pool_fees(outdated, station_reserve, D_T_S, station_fees)
 
     D_T_S = D_T_S + SUPERPOOL_LIQUIDITY
     d_X: decimal = (D_T_A * D_B_A) / D_T_S
@@ -353,12 +377,16 @@ def calc_remove_liquidity(
     amount_out_a: uint256 = convert(d_X * DECIMAL18, uint256) / decimal_diff_a
     amount_out_b: uint256 = convert(d_Y * DECIMAL18, uint256) / decimal_diff_b
     super_pool_share: uint256 = convert(SUPERPOOL_LIQUIDITY * DECIMAL18, uint256)
-    
-    return (amount_out_a, amount_out_b, super_pool_share)
+
+    return RemoveLiquidity({
+        amount_out_a: amount_out_a,
+        amount_out_b: amount_out_b,
+        super_pool_liquidity: super_pool_share
+    })
 
 
 @external
-@nonreentrant("Money often costs too much. Buy BTC")
+@nonreentrant("All money is a matter of belief")
 @payable
 def direct_routing(
     expiry: uint256,
@@ -389,8 +417,9 @@ def direct_routing(
             # approve
             self.send_token_approve(token_in, amount_in, station)
             # swap
-            (response_amount_out, response_token_out) = Exchange(
-                station).swap_tokens(amount_in, amount_out, token_in, expiry)
+            swap_data: Swapped = Exchange(station).swap_tokens(amount_in, amount_out, token_in, expiry)
+            response_token_out = swap_data.token_out
+            response_amount_out = swap_data.amount_out
             assert amount_out <= response_amount_out, "Path amount < Response Amount Out" 
         else:
             station = stations_path[i]
@@ -408,8 +437,9 @@ def direct_routing(
             # approve
             self.send_token_approve(token_in, amount_in, station)
             # swap
-            (response_amount_out, response_token_out) = Exchange(
-                station).swap_tokens(amount_in, amount_out, token_in, expiry)
+            swap_data: Swapped = Exchange(station).swap_tokens(amount_in, amount_out, token_in, expiry)
+            response_token_out = swap_data.token_out
+            response_amount_out = swap_data.amount_out
             assert amount_out <= response_amount_out, "Path amount < Response Amount Out" 
     
     # Loop done

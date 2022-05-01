@@ -220,12 +220,12 @@ def register_pot(
 
 
 @external
-def increase_salary_rate(new_rate: uint256) -> bool:
+def increase_salary_rate(new_rate: uint256):
     assert msg.sender == self.owner, "Owner only"
-    assert new_rate >= 50 or new_rate <= 200, "Wrong rate"
+    assert new_rate >= 50, "Wrong rate"
+    assert new_rate <= 200, "Wrong rate"
     self.salary_rate = new_rate
     log NewSalaryRate(msg.sender, new_rate)
-    return True
 
 
 @external
