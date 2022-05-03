@@ -1,7 +1,7 @@
 # @version 0.3.3
 # @License Copyright (c) Swap.Dance, 2022 - all rights reserved
 # @Author Alexey K
-# Swap.Dance Token (Ticker: SWD)
+# Swap.Dance Token (Ticker: DANCE)
 
 event Transfer:
     sender: indexed(address)

@@ -53,7 +53,6 @@ event ReceiveEth:
 # Constants
 WETH: immutable(address)
 OWNER: immutable(address)
-CHAIN_ID: immutable(uint256)
 A: constant(decimal) = 51922968585348.28
 DENOMINATOR: constant(decimal) = 10000.0
 MINIMUM_LIQUIDITY: constant(decimal) = 0.000000001
@@ -64,7 +63,6 @@ DECIMAL18: constant(decimal) = 1000000000000000000.0
 def __init__(_weth: address):
     OWNER = msg.sender
     WETH = _weth
-    CHAIN_ID = chain.id
 
 
 @internal
