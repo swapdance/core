@@ -8,8 +8,8 @@ class SwapDance(object):
     token_list = []
 
     def load_accs(self):
-        acc1 = accounts.load("trader06")
-        acc1.set_autosign(True)
+        acc1 = accounts.load("trader03")
+    #    acc1.set_autosign(True)
         return acc1
 
     def init_router(self, wrapped_token, owner): #Router

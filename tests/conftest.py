@@ -102,5 +102,5 @@ def tokenW(project, owner):
     return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def tokenZ(project, owner):
+def tokenK(project, owner):
     return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)

@@ -17,7 +17,7 @@ def test_withdraw_with_reward(
         deployer, station, token,
         tokenA, tokenB, tokenC,
         tokenD, tokenF, tokenG,
-        tokenW, tokenZ, super,
+        tokenW, tokenK, super,
         token1, token2, token3,
         token4, token5, token6,
         token7, token8, token9,
@@ -34,7 +34,7 @@ def test_withdraw_with_reward(
     stable.initialize(tokenA, tokenB, 4, 4, 0, int(1e18), sender=accounts[0])
     stable.initialize(tokenC, tokenD, 4, 4, 0, int(1e18), sender=accounts[0])
     stable.initialize(tokenF, tokenG, 4, 4, 0, int(1e18), sender=accounts[0])
-    stable.initialize(tokenW, tokenZ, 4, 4, 0, int(1e18), sender=accounts[0])
+    stable.initialize(tokenW, tokenK, 4, 4, 0, int(1e18), sender=accounts[0])
     stable.initialize(token1, token2, 4, 4, 0, int(1e18), sender=accounts[0])
     stable.initialize(token3, token4, 4, 4, 0, int(1e18), sender=accounts[0])
     stable.initialize(token5, token6, 4, 4, 0, int(1e18), sender=accounts[0])
@@ -89,7 +89,7 @@ def test_withdraw_with_reward(
     station3.add_liquidity(int(10000e18), int(10000e18), int(10000e18), int(10000e18), int(1e18), sender=accounts[0])
 
     tokenW.approve(new_station_addr4, int(10000e18), sender=accounts[0])
-    tokenZ.approve(new_station_addr4, int(10000e18), sender=accounts[0])
+    tokenK.approve(new_station_addr4, int(10000e18), sender=accounts[0])
     station4.add_liquidity(int(10000e18), int(10000e18), int(10000e18), int(10000e18), int(1e18), sender=accounts[0])
 
     token1.approve(new_station_addr5, int(10000e18), sender=accounts[0])
@@ -149,11 +149,11 @@ def test_withdraw_with_reward(
     k = 0
     while k < 10:
         tokenW.approve(new_station_addr4, int(3000e18), sender=accounts[0])
-        tokenZ.approve(new_station_addr4, int(3000e18), sender=accounts[0])
+        tokenK.approve(new_station_addr4, int(3000e18), sender=accounts[0])
         for i in range(swap_count):
             station4.swap_tokens(int(100e18), int(99e18), tokenW, int(1e18), sender=accounts[0])
         for i in range(swap_count):
-            station4.swap_tokens(int(100e18), int(99e18), tokenZ, int(1e18), sender=accounts[0])
+            station4.swap_tokens(int(100e18), int(99e18), tokenK, int(1e18), sender=accounts[0])
         k += 1
     k = 0
 
@@ -372,11 +372,11 @@ def test_withdraw_with_reward(
     k = 0
     while k < 10:
         tokenW.approve(new_station_addr4, int(3000e18), sender=accounts[0])
-        tokenZ.approve(new_station_addr4, int(3000e18), sender=accounts[0])
+        tokenK.approve(new_station_addr4, int(3000e18), sender=accounts[0])
         for i in range(swap_count):
             station4.swap_tokens(int(100e18), int(99e18), tokenW, int(1e18), sender=accounts[0])
         for i in range(swap_count):
-            station4.swap_tokens(int(100e18), int(99e18), tokenZ, int(1e18), sender=accounts[0])
+            station4.swap_tokens(int(100e18), int(99e18), tokenK, int(1e18), sender=accounts[0])
         k += 1
 
     station1.remove_liquidity(int(1e18), int(9e17), int(9e17), int(1e18), sender=accounts[0])
