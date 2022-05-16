@@ -5,7 +5,7 @@ Welcome! [Swap.Dance](https://swap.dance/) is an Ethereum dApp which allows anyo
 Swap.Dance smart contracts were deployed on [Vyper 3.3](https://github.com/vyperlang/vyper). and are immutable and not upgradeable.
 
 ### Testing
-In order to test this code, you need to install the Brownie. To run the entire tests:
+In order to test this code, you need to install the [Brownie](https://github.com/eth-brownie/brownie) package. To run the entire tests:
 
 ```buildoutcfg
  brownie test
@@ -14,7 +14,7 @@ In order to test this code, you need to install the Brownie. To run the entire t
 ### Deployment
 
 To deploy the Proof of Trade AMM:
-1. Install the developer dependencies:
+1. Install the [ApeWorX](https://github.com/ApeWorX/ape) packages:
    ```buildoutcfg
     pip install eth-ape
     ape plugins install vyper
@@ -46,7 +46,7 @@ To deploy the Proof of Trade AMM:
     ```
    
 ### Docs
-[Swap.Dance Docs](https://docs.swap.dance/)
+[Swap.Dance Docs and API](https://docs.swap.dance/)
 
 ### Licensing
 The primary license for SwapDance V1 smart contracts is the Business Source License 1.1 (BUSL-1.1), see LICENSE.
