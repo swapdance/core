@@ -2,7 +2,7 @@
 
 Welcome! [Swap.Dance](https://swap.dance/) is an Ethereum dApp which allows anyone to swap ERC20 tokens and ETH with low slippage. Proof of Trade concept provides a new type of staking mechanism for LP providers.
 
-Swap.Dance smart contracts were deployed on [Vyper 3.3](https://github.com/vyperlang/vyper). and are immutable and not upgradeable.
+Swap.Dance smart contracts were deployed on [Vyper v0.3.3](https://github.com/vyperlang/vyper). and are immutable and not upgradeable.
 
 ### Testing
 In order to test this code, you need to install the [Brownie](https://github.com/eth-brownie/brownie) package. To run the entire tests:
