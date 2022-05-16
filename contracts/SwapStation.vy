@@ -10,9 +10,7 @@
 # A == B == 51922968585348.28
 
 # Dynamic curve:
-# B = (X - Y)/((X / Y)^2 - 1)
-# C = B*(X/Y)^2
-# Price = √(B/C)
+# Price = X/Y
 
 from vyper.interfaces import ERC20
 
@@ -579,9 +577,7 @@ def calc_price(
     
     if station_type == 1:
         Y = Y - (Y * token_fee / DENOMINATOR)
-        B: decimal = ((X + Z) - Y)/(((X + Z)/Y) * ((X + Z)/Y) - 1.0)
-        C: decimal = B * ((X + Z)/Y) * ((X + Z)/Y)
-        AMOUNT_OUT = sqrt(B/C) * Z
+        AMOUNT_OUT = (Y / (X + Z)) * Z
     elif station_type == 0:
         K: decimal = (X - A)*(X - A) + (Y - A)*(Y - A)
         E1: decimal = K - ((A - (X + Z)) * (A - (X + Z)))

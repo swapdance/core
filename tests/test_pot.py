@@ -1,129 +1,132 @@
-from ape import project
-ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
+import brownie
+from brownie import ZERO_ADDRESS, SwapStation, PoTStation, SuperPool
 
 def test_stake(deployer, station, token, tokenA, tokenB, super, accounts):
     stable = station
-    super.update_owner(deployer, sender=accounts[0])
-    stable.update_owner(deployer, sender=accounts[0])
-    token.new_deployer(deployer, sender=accounts[0])
-    deployer.register_deployer(sender=accounts[0])
-    deployer.add_approved_tokens(tokenA, sender=accounts[0])
-    stable.initialize(tokenA, tokenB, 4, 4, 0, int(1e18), sender=accounts[0])
+    super.update_owner(deployer, {'from': accounts[0]})
+    stable.update_owner(deployer, {'from': accounts[0]})
+    token.new_deployer(deployer, {'from': accounts[0]})
+    deployer.register_deployer()
+    deployer.add_approved_tokens(tokenA, {'from': accounts[0]})
+    stable.initialize(tokenA, tokenB, 4, 4, 0, 1e18, {'from': accounts[0]})
     assert deployer.exchange_info(1) != ZERO_ADDRESS
     #add liquidity
     new_station_info = deployer.get_pair_info(1)
     new_station_addr = new_station_info[0]
-    stable.initialize_pot_station(new_station_addr, int(1e18), sender=accounts[0])
+    stable.initialize_pot_station(new_station_addr, 1e18, {'from': accounts[0]})
     pot_addr = deployer.pot_station_list(new_station_addr)
-    pot_station = project.PoTStation.at(pot_addr)
-    station = project.SwapStation.at(new_station_addr)
-    tokenA.approve(new_station_addr, int(1000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(1000e18), sender=accounts[0])
-    station.add_liquidity(int(1000e18), int(1000e18), int(1000e18), int(1000e18), int(1e18), sender=accounts[0])
+    pot_station = PoTStation.at(pot_addr)
+    station = SwapStation.at(new_station_addr)
+    tokenA.approve(new_station_addr, 1000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 1000e18, {'from': accounts[0]})
+    station.add_liquidity(1000e18, 1000e18, 1000e18, 1000e18, 1e18, {'from': accounts[0]})
     lp_token_balance = station.balanceOf(accounts[0])
-    station.approve(pot_addr, lp_token_balance, sender=accounts[0])
-    pot_station.stake(lp_token_balance, int(1e18), sender=accounts[0])
+    station.approve(pot_addr, lp_token_balance, {'from': accounts[0]})
+    pot_station.stake(lp_token_balance, 1e18, {'from': accounts[0]})
     # swap tokens to mint swd
-    tokenA.approve(new_station_addr, int(int(700e18)), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(int(700e18)), sender=accounts[0])
+    tokenA.approve(new_station_addr, 700e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 700e18, {'from': accounts[0]})
     for i in range(7):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(7):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     user_reward = pot_station.actual_reward(accounts[0])
     assert user_reward != 0
 
 def test_unstake(deployer, station, token, tokenA, tokenB, super, accounts):
     stable = station
-    super.update_owner(deployer, sender=accounts[0])
-    stable.update_owner(deployer, sender=accounts[0])
-    token.new_deployer(deployer, sender=accounts[0])
-    deployer.register_deployer(sender=accounts[0])
-    deployer.add_approved_tokens(tokenA, sender=accounts[0])
-    stable.initialize(tokenA, tokenB, 4, 4, 0, int(1e18), sender=accounts[0])
+    super.update_owner(deployer, {'from': accounts[0]})
+    stable.update_owner(deployer, {'from': accounts[0]})
+    token.new_deployer(deployer, {'from': accounts[0]})
+    deployer.register_deployer()
+    deployer.add_approved_tokens(tokenA, {'from': accounts[0]})
+    stable.initialize(tokenA, tokenB, 4, 4, 0, 1e18, {'from': accounts[0]})
     assert deployer.exchange_info(1) != ZERO_ADDRESS
     #add liquidity
     new_station_info = deployer.get_pair_info(1)
     new_station_addr = new_station_info[0]
-    stable.initialize_pot_station(new_station_addr, int(1e18), sender=accounts[0])
+    stable.initialize_pot_station(new_station_addr, 1e18, {'from': accounts[0]})
     pot_addr = deployer.pot_station_list(new_station_addr)
-    pot_station = project.PoTStation.at(pot_addr)
-    station = project.SwapStation.at(new_station_addr)
-    tokenA.approve(new_station_addr, int(1000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(1000e18), sender=accounts[0])
-    station.add_liquidity(int(1000e18), int(1000e18), int(1000e18), int(1000e18), int(1e18), sender=accounts[0])
+    pot_station = PoTStation.at(pot_addr)
+    station = SwapStation.at(new_station_addr)
+    tokenA.approve(new_station_addr, 1000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 1000e18, {'from': accounts[0]})
+    station.add_liquidity(1000e18, 1000e18, 1000e18, 1000e18, 1e18, {'from': accounts[0]})
     lp_token_balance = station.balanceOf(accounts[0])
-    station.approve(pot_addr, lp_token_balance, sender=accounts[0])
-    pot_station.stake(lp_token_balance, int(1e18), sender=accounts[0])
+    station.approve(pot_addr, lp_token_balance, {'from': accounts[0]})
+    pot_station.stake(lp_token_balance, 1e18, {'from': accounts[0]})
     # swap tokens to mint swd
-    tokenA.approve(new_station_addr, int(700e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(700e18), sender=accounts[0])
+    tokenA.approve(new_station_addr, 700e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 700e18, {'from': accounts[0]})
     for i in range(7):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(7):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     user_reward = pot_station.actual_reward(accounts[0])
     assert user_reward != 0
     assert station.balanceOf(pot_addr) > 0
-    pot_station.unstake(int(1e18), sender=accounts[0]) # int(1e18) - expiry time
+    tx = pot_station.unstake(1e18, {'from': accounts[0]}) # 1e18 - expiry time
     assert station.balanceOf(pot_addr) == 0
     assert station.balanceOf(accounts[0]) == lp_token_balance
+    assert len(tx.events) == 4
 
 def test_update_owner(pot, accounts):
-    pot.update_owner(accounts[1], sender=accounts[0])
+    tx = pot.update_owner(accounts[1], {'from': accounts[0]})
     assert pot.owner() == accounts[1]
+    assert tx.return_value is True
 
 def test_update_lock(pot, accounts):
-    pot.update_lock(1, sender=accounts[0])
+    tx = pot.update_lock(1, {'from': accounts[0]})
     assert pot.lock() == True
-    pot.update_lock(0, sender=accounts[0])
+    assert tx.return_value is True
+    pot.update_lock(0, {'from': accounts[0]})
     assert pot.lock() == False
 
 # Complicated Proof of trade tests
 
 def test_complicated_stake(deployer, station, token, tokenA, tokenB, super, accounts):
     stable = station
-    super.update_owner(deployer, sender=accounts[0])
-    stable.update_owner(deployer, sender=accounts[0])
-    token.new_deployer(deployer, sender=accounts[0])
-    deployer.register_deployer(sender=accounts[0])
-    deployer.add_approved_tokens(tokenA, sender=accounts[0])
-    stable.initialize(tokenA, tokenB, 4, 4, 0, int(1e18), sender=accounts[0])
+    super.update_owner(deployer, {'from': accounts[0]})
+    stable.update_owner(deployer, {'from': accounts[0]})
+    token.new_deployer(deployer, {'from': accounts[0]})
+    deployer.register_deployer()
+    deployer.add_approved_tokens(tokenA, {'from': accounts[0]})
+    stable.initialize(tokenA, tokenB, 4, 4, 0, 1e18, {'from': accounts[0]})
     assert deployer.exchange_info(1) != ZERO_ADDRESS
     #add liquidity
     new_station_info = deployer.get_pair_info(1)
     new_station_addr = new_station_info[0]
-    stable.initialize_pot_station(new_station_addr, int(1e18), sender=accounts[0])
+    stable.initialize_pot_station(new_station_addr, 1e18, {'from': accounts[0]})
     pot_addr = deployer.pot_station_list(new_station_addr)
-    pot_station = project.PoTStation.at(pot_addr)
-    station = project.SwapStation.at(new_station_addr)
-    tokenA.approve(new_station_addr, int(10000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(10000e18), sender=accounts[0])
-    station.add_liquidity(int(10000e18), int(10000e18), int(10000e18), int(10000e18), int(1e18), sender=accounts[0])
+    pot_station = PoTStation.at(pot_addr)
+    station = SwapStation.at(new_station_addr)
+    tokenA.approve(new_station_addr, 10000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 10000e18, {'from': accounts[0]})
+    station.add_liquidity(10000e18, 10000e18, 10000e18, 10000e18, 1e18, {'from': accounts[0]})
 
     # load balances
-    station.transfer(accounts[1], int(100e18), sender=accounts[0])
-    station.approve(pot_addr, int(100e18), sender=accounts[1])
-    station.transfer(accounts[2], int(1000e18), sender=accounts[0])
-    station.approve(pot_addr, int(1000e18), sender=accounts[2])
-    station.transfer(accounts[3], int(600e18), sender=accounts[0])
-    station.approve(pot_addr, int(600e18), sender=accounts[3])
-    station.transfer(accounts[4], int(900e18), sender=accounts[0])
-    station.approve(pot_addr, int(900e18), sender=accounts[4])
-    station.transfer(accounts[5], int(2000e18), sender=accounts[0])
-    station.approve(pot_addr, int(2000e18), sender=accounts[5])
-    station.transfer(accounts[6], int(1990e18), sender=accounts[0])
-    station.approve(pot_addr, int(1990e18), sender=accounts[6])
-    station.transfer(accounts[7], int(500e18), sender=accounts[0])
-    station.approve(pot_addr, int(500e18), sender=accounts[7])
-    station.transfer(accounts[8], int(910e18), sender=accounts[0])
-    station.approve(pot_addr, int(910e18), sender=accounts[8])
-    station.transfer(accounts[9], int(1500e18), sender=accounts[0])
-    station.approve(pot_addr, int(1500e18), sender=accounts[9])
+    station.transfer(accounts[1], 100e18, {'from': accounts[0]})
+    station.approve(pot_addr, 100e18, {'from': accounts[1]})
+    station.transfer(accounts[2], 1000e18, {'from': accounts[0]})
+    station.approve(pot_addr, 1000e18, {'from': accounts[2]})
+    station.transfer(accounts[3], 600e18, {'from': accounts[0]})
+    station.approve(pot_addr, 600e18, {'from': accounts[3]})
+    station.transfer(accounts[4], 900e18, {'from': accounts[0]})
+    station.approve(pot_addr, 900e18, {'from': accounts[4]})
+    station.transfer(accounts[5], 2000e18, {'from': accounts[0]})
+    station.approve(pot_addr, 2000e18, {'from': accounts[5]})
+    station.transfer(accounts[6], 1990e18, {'from': accounts[0]})
+    station.approve(pot_addr, 1990e18, {'from': accounts[6]})
+    station.transfer(accounts[7], 500e18, {'from': accounts[0]})
+    station.approve(pot_addr, 500e18, {'from': accounts[7]})
+    station.transfer(accounts[8], 910e18, {'from': accounts[0]})
+    station.approve(pot_addr, 910e18, {'from': accounts[8]})
+    station.transfer(accounts[9], 1500e18, {'from': accounts[0]})
+    station.approve(pot_addr, 1500e18, {'from': accounts[9]})
     # stake/unstake random
     # Note 1st user has only 500 lp - 0.000000001 (Min liq)
     # several swaps before stake. for instance
@@ -131,39 +134,39 @@ def test_complicated_stake(deployer, station, token, tokenA, tokenB, super, acco
     # for every swap, pot station receive < 0.03 and >0.029 swd in the mainnet
     # but in testing gas is lower so 1 reward ~ 0.01850336152
     lp_token_balance = station.balanceOf(accounts[0])
-    assert int(lp_token_balance) == 499999999999000000000
-    station.approve(pot_addr, lp_token_balance, sender=accounts[0])
-    pot_station.stake(lp_token_balance, int(1e18), sender=accounts[0])
+    assert lp_token_balance == 499999999999000000000
+    station.approve(pot_addr, lp_token_balance, {'from': accounts[0]})
+    pot_station.stake(lp_token_balance, 1e18, {'from': accounts[0]})
     # if one account will stake LPs
     # for example there will be 34 trades
     # so the end reward must be > 1 swd for only one user
     # test it for 1 user
     # 0.64390732 ~ 34 swaps ~ 0.01893845058
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     user_reward = pot_station.actual_reward(accounts[0])
-    assert user_reward > int(0.6e18)
+    assert user_reward > 0.6e18
     # well everything goes good so
     # lets add a new user(1)
     # 2nd round start
     print("user_reward", user_reward)
-    pot_station.stake(int(100e18), int(1e18), sender=accounts[1])
+    pot_station.stake(100e18, 1e18, {'from': accounts[1]})
     #make some swaps again
     # user 2 has 100 lp
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     #so, 1st user receive > 1.26 at start and (0.64390732 / 500+100 ) * 500
     # 0.64390732 first user reward
     # second reward round is 0.64390732 for user1 and user2
@@ -171,82 +174,82 @@ def test_complicated_stake(deployer, station, token, tokenA, tokenB, super, acco
     # ~ (0.64390732 / (500+100) ) * 100 = 0.104852382 for second user
     user_reward1_old = pot_station.actual_reward(accounts[0])
     user_reward2_old = pot_station.actual_reward(accounts[1])
-    assert user_reward1_old > int(1.15e18)
-    assert user_reward2_old > int(0.1e18)
+    assert user_reward1_old > 1.15e18
+    assert user_reward2_old > 0.1e18
     #lets add 3rd user
-    pot_station.stake(int(1000e18), int(1e18), sender=accounts[2])
+    pot_station.stake(1000e18, 1e18, {'from': accounts[2]})
     #swap tokens
     # 3rd round start
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
 
 
     user_reward3 = pot_station.actual_reward(accounts[2])
-    assert user_reward3 > int(0.39e18)
+    assert user_reward3 > 0.39e18
     # 2nd user
     # (0.64390732/ (500+100+1000)) * 100 = 0.03931964325
     user_reward2 = pot_station.actual_reward(accounts[1])
-    assert user_reward2 > (int(0.039e18) + user_reward2_old)
+    assert user_reward2 > (0.039e18 + user_reward2_old)
     # 1st user
     # (0.64390732/ (500+100+1000)) * 500 = 0.19659821625
     user_reward1 = pot_station.actual_reward(accounts[0])
-    assert user_reward1 > (int(0.195e18) + user_reward1_old)
+    assert user_reward1 > (0.195e18 + user_reward1_old)
     # well... lets add one more user
-    pot_station.stake(int(600e18), int(1e18), sender=accounts[3])
+    pot_station.stake(600e18, 1e18, {'from': accounts[3]})
     # swap tokens to earn 0.64390732 swd
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     # swap to mint
     # 4th round start
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     # init get_reward for user2 and user1 (it will be count as start of the round n5)
 
-    pot_station.get_reward(int(1e18), sender=accounts[0])
-    pot_station.get_reward(int(1e18), sender=accounts[1])
+    pot_station.get_reward(1e18, {'from': accounts[0]})
+    pot_station.get_reward(1e18, {'from': accounts[1]})
     # full reward for user1 will be 0.19659821625 + 0.52426191 + 0.64390732
     # full reward for user2 will be 0.104852382 + 0.03931964325
     assert token.balanceOf(accounts[1]) >= 0.14e18
     #cal reward for user3 (0.64390732/ (500+100+1000+600)) * 600 ~ 0.17
     user_reward3 = pot_station.actual_reward(accounts[3])
-    assert user_reward3 >= int(0.17e18)
+    assert user_reward3 >= 0.17e18
     #lets unstake user1 with 100 lp
     #user1 already got its actual reward.
     #with unstake user1 can get round reward ~ 0.02859610418 == (0.64390732/ (500+100+1000+600))*100
-    pot_station.unstake(int(1e18), sender=accounts[1])
+    pot_station.unstake(1e18, {'from': accounts[1]})
     assert token.balanceOf(accounts[1]) >= 0.168e18
     # swap a little more, and let's add user 4
-    pot_station.stake(int(900e18), int(1e18), sender=accounts[4])
+    pot_station.stake(900e18, 1e18, {'from': accounts[4]})
     # 5th round start
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     # also lets restake user1 funds
     # (it will be count as start of the round n6)
-    station.approve(pot_addr, int(100e18), sender=accounts[1])
-    pot_station.stake(int(100e18), int(1e18), sender=accounts[1])
+    station.approve(pot_addr, 100e18, {'from': accounts[1]})
+    pot_station.stake(100e18, 1e18, {'from': accounts[1]})
 
     #with this step we can get full reward and round reward == 0
     #also actual reward will be 0
-    pot_station.get_reward(int(1e18), sender=accounts[0])
-    pot_station.get_reward(int(1e18), sender=accounts[2])
-    pot_station.get_reward(int(1e18), sender=accounts[3])
-    pot_station.get_reward(int(1e18), sender=accounts[4])
+    pot_station.get_reward(1e18, {'from': accounts[0]})
+    pot_station.get_reward(1e18, {'from': accounts[2]})
+    pot_station.get_reward(1e18, {'from': accounts[3]})
+    pot_station.get_reward(1e18, {'from': accounts[4]})
     # assert actual reward == 0 for user0,2,3,4
 
     assert pot_station.actual_reward(accounts[4]) == 0
@@ -260,130 +263,130 @@ def test_complicated_stake(deployer, station, token, tokenA, tokenB, super, acco
     # so its account[1] got zero too
     # lets make some  swaps again
     # 6th round start
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
 
     # user5 with 2000 enter the game
     # (it will be count as start of the round n7)
-    pot_station.stake(int(2000e18), int(1e18), sender=accounts[5])
+    pot_station.stake(2000e18, 1e18, {'from': accounts[5]})
     # 7th round start
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
 
     # user5 with 2000 enter the game
     # (it will be count as start of the round n8)
-    pot_station.stake(int(1990e18), int(1e18), sender=accounts[6])
+    pot_station.stake(1990e18, 1e18, {'from': accounts[6]})
     # 8th round start
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     # (it will be count as start of the round n9)
     #lets unstake user2(1k lp)
-    pot_station.unstake(int(1e18), sender=accounts[2])
+    pot_station.unstake(1e18, {'from': accounts[2]})
     # 9th round start 2xSWAPS
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
 
     # (it will be count as start of the round n10)
-    pot_station.stake(int(500e18), int(1e18), sender=accounts[7])
+    pot_station.stake(500e18, 1e18, {'from': accounts[7]})
 
-    pot_station.unstake(int(1e18), sender=accounts[3])
+    pot_station.unstake(1e18, {'from': accounts[3]})
     # 10th round start
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     # (it will be count as start of the round n11)
-    pot_station.stake(int(910e18), int(1e18), sender=accounts[8])
-    pot_station.stake(int(1500e18), int(1e18), sender=accounts[9])
-    station.approve(pot_addr, int(600e18), sender=accounts[3])
-    pot_station.stake(int(600e18), int(1e18), sender=accounts[3])
-    station.approve(pot_addr, int(1000e18), sender=accounts[2])
-    pot_station.stake(int(1000e18), int(1e18), sender=accounts[2])
-    #station.approve(pot_addr, int(100e18), sender=accounts[1])
-    #pot_station.stake(int(100e18), sender=accounts[1])
+    pot_station.stake(910e18, 1e18, {'from': accounts[8]})
+    pot_station.stake(1500e18, 1e18, {'from': accounts[9]})
+    station.approve(pot_addr, 600e18, {'from': accounts[3]})
+    pot_station.stake(600e18, 1e18, {'from': accounts[3]})
+    station.approve(pot_addr, 1000e18, {'from': accounts[2]})
+    pot_station.stake(1000e18, 1e18, {'from': accounts[2]})
+    #station.approve(pot_addr, 100e18, {'from': accounts[1]})
+    #pot_station.stake(100e18, {'from': accounts[1]})
 
     # 11th round start 4xSWAPS
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
-    tokenA.approve(new_station_addr, int(3000e18), sender=accounts[0])
-    tokenB.approve(new_station_addr, int(3000e18), sender=accounts[0])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
+    tokenA.approve(new_station_addr, 3000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 3000e18, {'from': accounts[0]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenA, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
     for i in range(17):
-        station.swap_tokens(int(100e18), int(99e18), tokenB, int(1e18), sender=accounts[0])
-        station.force_reward(sender=accounts[7])
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
 
 
-    pot_station.unstake(int(1e18), sender=accounts[0])
-    pot_station.unstake(int(1e18), sender=accounts[1])
-    pot_station.unstake(int(1e18), sender=accounts[2])
-    pot_station.unstake(int(1e18), sender=accounts[3])
-    pot_station.unstake(int(1e18), sender=accounts[4])
-    pot_station.unstake(int(1e18), sender=accounts[5])
-    pot_station.unstake(int(1e18), sender=accounts[6])
-    pot_station.unstake(int(1e18), sender=accounts[7])
-    pot_station.unstake(int(1e18), sender=accounts[8])
-    pot_station.unstake(int(1e18), sender=accounts[9])
-    assert token.balanceOf(pot_addr) <= 30000 ### there may be some precision loss
+    pot_station.unstake(1e18, {'from': accounts[0]})
+    pot_station.unstake(1e18, {'from': accounts[1]})
+    pot_station.unstake(1e18, {'from': accounts[2]})
+    pot_station.unstake(1e18, {'from': accounts[3]})
+    pot_station.unstake(1e18, {'from': accounts[4]})
+    pot_station.unstake(1e18, {'from': accounts[5]})
+    pot_station.unstake(1e18, {'from': accounts[6]})
+    pot_station.unstake(1e18, {'from': accounts[7]})
+    pot_station.unstake(1e18, {'from': accounts[8]})
+    pot_station.unstake(1e18, {'from': accounts[9]})
+    assert token.balanceOf(pot_addr) <= 20000
     # there are small account balance due to precision loss
     # NOTE. it's 2000e18/10**18
     # cal. total balance
@@ -503,14 +506,14 @@ def test_complicated_stake(deployer, station, token, tokenA, tokenB, super, acco
     #user9 = 0.38634438
     # total # there may be some precision loss... maybe I'm wrong in first calc bc for cycle is 11 instead 10
     # user0 - 500e18 (2.086)
-    # user1 - int(100e18) (0.270)
-    # user2 - int(1000e18) (1.59)
+    # user1 - 100e18 (0.270)
+    # user2 - 1000e18 (1.59)
     # user3 - 600e18 (0.84)
     # user4 - 900e18 (1.09)
     # user5 - 2000e18 (1.58)
     # user6 - 1990e18 (1.32)
     # user7 - 500e18 (0.18)
-    # user8 - int(910e18) (0.234)
+    # user8 - 910e18 (0.234)
     # user9 - 1500e18 (0.386)
     print("users balances",
           token.balanceOf(accounts[0]), token.balanceOf(accounts[1]),
@@ -520,13 +523,167 @@ def test_complicated_stake(deployer, station, token, tokenA, tokenB, super, acco
           token.balanceOf(accounts[8]), token.balanceOf(accounts[9])
     )
 
-    assert (token.balanceOf(accounts[0]) - int(int(10000e18))) >= int(2.086e18)
-    assert token.balanceOf(accounts[1]) >= int(0.269e18)
-    assert token.balanceOf(accounts[2]) >= int(1.54e18)
-    assert token.balanceOf(accounts[3]) >= int(0.816e18)
-    assert token.balanceOf(accounts[4]) >= int(1.06e18)
-    assert token.balanceOf(accounts[5]) >= int(1.54e18)
-    assert token.balanceOf(accounts[6]) >= int(1.29e18)
-    assert token.balanceOf(accounts[7]) >= int(0.177e18)
-    assert token.balanceOf(accounts[8]) >= int(0.227e18)
-    assert token.balanceOf(accounts[9]) >= int(0.37e18)
+    assert (token.balanceOf(accounts[0]) - 10000e18) >= 2.086e18
+    assert token.balanceOf(accounts[1]) >= 0.269e18
+    assert token.balanceOf(accounts[2]) >= 1.54e18
+    assert token.balanceOf(accounts[3]) >= 0.816e18
+    assert token.balanceOf(accounts[4]) >= 1.06e18
+    assert token.balanceOf(accounts[5]) >= 1.54e18
+    assert token.balanceOf(accounts[6]) >= 1.29e18
+    assert token.balanceOf(accounts[7]) >= 0.177e18
+    assert token.balanceOf(accounts[8]) >= 0.227e18
+    assert token.balanceOf(accounts[9]) >= 0.37e18
+
+# Test Events
+
+def test_update_owner_event_fires(pot, accounts):
+    tx = pot.update_owner(accounts[1], {'from': accounts[0]})
+    assert len(tx.events) == 1
+    assert tx.events["NewOwner"].values() == [accounts[0], accounts[1]]
+
+def test_update_lock_event_fires(pot, accounts):
+    tx = pot.update_lock(1, {'from': accounts[0]})
+    assert len(tx.events) == 1
+    assert tx.events["LockStation"].values() == [accounts[0], 1]
+
+def test_register_staker_event_fires(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
+    super.update_owner(deployer, {'from': accounts[0]})
+    stable.update_owner(deployer, {'from': accounts[0]})
+    token.new_deployer(deployer, {'from': accounts[0]})
+    deployer.register_deployer()
+    deployer.add_approved_tokens(tokenA, {'from': accounts[0]})
+    stable.initialize(tokenA, tokenB, 4, 4, 0, 1e18, {'from': accounts[0]})
+    assert deployer.exchange_info(1) != ZERO_ADDRESS
+    #add liquidity
+    new_station_info = deployer.get_pair_info(1)
+    new_station_addr = new_station_info[0]
+    stable.initialize_pot_station(new_station_addr, 1e18, {'from': accounts[0]})
+    pot_addr = deployer.pot_station_list(new_station_addr)
+    pot_station = PoTStation.at(pot_addr)
+    station = SwapStation.at(new_station_addr)
+    tokenA.approve(new_station_addr, 1000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 1000e18, {'from': accounts[0]})
+    station.add_liquidity(1000e18, 1000e18, 1000e18, 1000e18, 1e18, {'from': accounts[0]})
+    lp_token_balance = station.balanceOf(accounts[0])
+    station.approve(pot_addr, lp_token_balance, {'from': accounts[0]})
+    tx = pot_station.stake(lp_token_balance, 1e18, {'from': accounts[0]})
+    assert len(tx.events) == 3
+    assert tx.events["RegisterStaker"].values() == [accounts[0], lp_token_balance]
+
+def test_unregister_staker_event_fires(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
+    super.update_owner(deployer, {'from': accounts[0]})
+    stable.update_owner(deployer, {'from': accounts[0]})
+    token.new_deployer(deployer, {'from': accounts[0]})
+    deployer.register_deployer()
+    deployer.add_approved_tokens(tokenA, {'from': accounts[0]})
+    stable.initialize(tokenA, tokenB, 4, 4, 0, 1e18, {'from': accounts[0]})
+    assert deployer.exchange_info(1) != ZERO_ADDRESS
+    #add liquidity
+    new_station_info = deployer.get_pair_info(1)
+    new_station_addr = new_station_info[0]
+    stable.initialize_pot_station(new_station_addr, 1e18, {'from': accounts[0]})
+    pot_addr = deployer.pot_station_list(new_station_addr)
+    pot_station = PoTStation.at(pot_addr)
+    station = SwapStation.at(new_station_addr)
+    tokenA.approve(new_station_addr, 1000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 1000e18, {'from': accounts[0]})
+    station.add_liquidity(1000e18, 1000e18, 1000e18, 1000e18, 1e18, {'from': accounts[0]})
+    lp_token_balance = station.balanceOf(accounts[0])
+    station.approve(pot_addr, lp_token_balance, {'from': accounts[0]})
+    tx = pot_station.stake(lp_token_balance, 1e18, {'from': accounts[0]})
+    assert len(tx.events) == 3
+    assert tx.events["RegisterStaker"].values() == [accounts[0], lp_token_balance]
+    tokenA.approve(new_station_addr, 700e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 700e18, {'from': accounts[0]})
+    for i in range(7):
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
+    for i in range(7):
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
+    user_reward = pot_station.actual_reward(accounts[0])
+    assert user_reward != 0
+    tx = pot_station.unstake(1e18, {'from': accounts[0]})  # 1e18 - expiry time
+    assert len(tx.events) == 4
+    assert tx.events["UnregisterStaker"].values() == [accounts[0], lp_token_balance]
+
+def test_reward_payout_event_fires(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
+    super.update_owner(deployer, {'from': accounts[0]})
+    stable.update_owner(deployer, {'from': accounts[0]})
+    token.new_deployer(deployer, {'from': accounts[0]})
+    deployer.register_deployer()
+    deployer.add_approved_tokens(tokenA, {'from': accounts[0]})
+    stable.initialize(tokenA, tokenB, 4, 4, 0, 1e18, {'from': accounts[0]})
+    assert deployer.exchange_info(1) != ZERO_ADDRESS
+    #add liquidity
+    new_station_info = deployer.get_pair_info(1)
+    new_station_addr = new_station_info[0]
+    stable.initialize_pot_station(new_station_addr, 1e18, {'from': accounts[0]})
+    pot_addr = deployer.pot_station_list(new_station_addr)
+    pot_station = PoTStation.at(pot_addr)
+    station = SwapStation.at(new_station_addr)
+    tokenA.approve(new_station_addr, 1000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 1000e18, {'from': accounts[0]})
+    station.add_liquidity(1000e18, 1000e18, 1000e18, 1000e18, 1e18, {'from': accounts[0]})
+    lp_token_balance = station.balanceOf(accounts[0])
+    station.approve(pot_addr, lp_token_balance, {'from': accounts[0]})
+    tx = pot_station.stake(lp_token_balance, 1e18, {'from': accounts[0]})
+    assert len(tx.events) == 3
+    assert tx.events["RegisterStaker"].values() == [accounts[0], lp_token_balance]
+    tokenA.approve(new_station_addr, 700e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 700e18, {'from': accounts[0]})
+    for i in range(7):
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
+    for i in range(7):
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
+    user_reward = pot_station.actual_reward(accounts[0])
+    assert user_reward != 0
+    tx = pot_station.unstake(1e18, {'from': accounts[0]})  # 1e18 - expiry time
+    assert len(tx.events) == 4
+    assert tx.events["UnregisterStaker"].values() == [accounts[0], lp_token_balance]
+    assert tx.events["RewardPayout"].values() == [accounts[0], user_reward]
+
+
+def test_reward_payout_and_register_again_event_fires(deployer, station, token, tokenA, tokenB, super, accounts):
+    stable = station
+    super.update_owner(deployer, {'from': accounts[0]})
+    stable.update_owner(deployer, {'from': accounts[0]})
+    token.new_deployer(deployer, {'from': accounts[0]})
+    deployer.register_deployer()
+    deployer.add_approved_tokens(tokenA, {'from': accounts[0]})
+    stable.initialize(tokenA, tokenB, 4, 4, 0, 1e18, {'from': accounts[0]})
+    assert deployer.exchange_info(1) != ZERO_ADDRESS
+    #add liquidity
+    new_station_info = deployer.get_pair_info(1)
+    new_station_addr = new_station_info[0]
+    stable.initialize_pot_station(new_station_addr, 1e18, {'from': accounts[0]})
+    pot_addr = deployer.pot_station_list(new_station_addr)
+    pot_station = PoTStation.at(pot_addr)
+    station = SwapStation.at(new_station_addr)
+    tokenA.approve(new_station_addr, 1000e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 1000e18, {'from': accounts[0]})
+    station.add_liquidity(1000e18, 1000e18, 1000e18, 1000e18, 1e18, {'from': accounts[0]})
+    lp_token_balance = station.balanceOf(accounts[0])
+    station.approve(pot_addr, lp_token_balance, {'from': accounts[0]})
+    tx = pot_station.stake(lp_token_balance - 10e18, 1e18, {'from': accounts[0]})
+    assert len(tx.events) == 3
+    assert tx.events["RegisterStaker"].values() == [accounts[0], lp_token_balance - 10e18]
+    tokenA.approve(new_station_addr, 700e18, {'from': accounts[0]})
+    tokenB.approve(new_station_addr, 700e18, {'from': accounts[0]})
+    for i in range(7):
+        station.swap_tokens(100e18, 99e18, tokenA, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
+    for i in range(7):
+        station.swap_tokens(100e18, 99e18, tokenB, 1e18, {'from': accounts[0]})
+        station.force_reward({'from': accounts[7]})
+    user_reward = pot_station.actual_reward(accounts[0])
+    assert user_reward != 0
+    tx = pot_station.stake(10e18, 1e18, {'from': accounts[0]})
+    assert len(tx.events) == 5
+    assert tx.events["RegisterStaker"].values() == [accounts[0], 10e18]
+    assert tx.events["RewardPayout"].values() == [accounts[0], user_reward]
