@@ -8,7 +8,7 @@ class SwapDance(object):
     token_list = []
 
     def load_accs(self):
-        acc1 = accounts.load("trader03")
+        acc1 = accounts.load("account01")
         acc1.set_autosign(True)
         return acc1
 
@@ -57,8 +57,6 @@ class SwapDance(object):
 #Ropsten: 0xc778417E063141139Fce010982780140Aa0cD5Ab
 #Goerli: 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6
 ###
-#Settings
-###
 # pre-approved tokens
 WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
 WETH = "0xDf032Bc4B9dC2782Bb09352007D4C57B75160B15"  ### change this address if you are not on mainnet #Rinkeby for example: 0xDf032Bc4B9dC2782Bb09352007D4C57B75160B15
@@ -71,7 +69,7 @@ expiry = int(time.time()) + 3600 # 60min
 deploy = SwapDance()
 main_account = deploy.load_accs()
 print("check main addr", main_account)
-DANCE_token = deploy.create_token("SwapDance", "DANCE", main_account) ### What is better SWD or DANCE symbol?
+DANCE_token = deploy.create_token("TestToken", "Token", main_account)
 station_template = deploy.init_station(DANCE_token, main_account)
 stake_template = deploy.init_stake_station(DANCE_token, main_account)
 super_pool = deploy.init_super_pool(DANCE_token, main_account, 86400)
