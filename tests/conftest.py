@@ -1,107 +1,106 @@
 import pytest
-from brownie import SWDToken, PoTStation, SwapStation, SuperPool, Deployer, SwapRouter, accounts, ZERO_ADDRESS
 
 @pytest.fixture
 def owner(accounts):
     return accounts[0]
 
 @pytest.fixture
-def token(owner):
-    return owner.deploy(SWDToken, "SwapDance", "DANCE", 10000, 30000000, 1000000000)
+def token(project, owner):
+    return owner.deploy(project.SWDToken, "SwapDance", "DANCE", 10000, 30000000, 1000000000)
 
 @pytest.fixture
-def router(owner, token):
-    return owner.deploy(SwapRouter, token)
+def router(project, owner, token):
+    return owner.deploy(project.SwapRouter, token)
 
 @pytest.fixture
-def pot(owner, token):
-    return owner.deploy(PoTStation, token)
+def pot(project, owner, token):
+    return owner.deploy(project.PoTStation, token)
 
 @pytest.fixture
-def super(owner, token):
-    return owner.deploy(SuperPool, token, 180)
+def super(project, owner, token):
+    return owner.deploy(project.SuperPool, token, 180)
 
 @pytest.fixture
-def station(owner, token):
-    return owner.deploy(SwapStation, token)
+def station(project, owner, token):
+    return owner.deploy(project.SwapStation, token)
 
 @pytest.fixture
-def deployer(owner, token, super, pot, station):
-    return owner.deploy(Deployer, token, super, pot, station)
+def deployer(project, owner, token, super, pot, station):
+    return owner.deploy(project.Deployer, token, super, pot, station)
 
 ### MORE TOKENS ###
 @pytest.fixture
-def token1(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def token1(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def token1(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def token1(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def token2(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def token2(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def token3(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def token3(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def token4(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def token4(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def token5(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def token5(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def token6(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def token6(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def token7(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def token7(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def token8(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def token8(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def token9(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def token9(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def token10(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def token10(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def tokenA(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def tokenA(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def tokenB(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def tokenB(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def tokenC(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def tokenC(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def tokenD(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def tokenD(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def tokenF(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def tokenF(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def tokenG(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def tokenG(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def tokenW(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def tokenW(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
 
 @pytest.fixture
-def tokenK(owner):
-    return owner.deploy(SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)
+def tokenK(project, owner):
+    return owner.deploy(project.SWDToken, "AToken", "ATK", 100000, 30000000, 1000000000)

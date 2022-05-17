@@ -59,7 +59,7 @@ class SwapDance(object):
 ###
 # pre-approved tokens
 WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
-WETH = "0xDf032Bc4B9dC2782Bb09352007D4C57B75160B15"  ### change this address if you are not on mainnet #Rinkeby for example: 0xDf032Bc4B9dC2782Bb09352007D4C57B75160B15
+WETH = "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"  ### change this address if you are not on another testnet. #Rinkeby for example: 0xDf032Bc4B9dC2782Bb09352007D4C57B75160B15
 DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
 USDT = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
 USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
