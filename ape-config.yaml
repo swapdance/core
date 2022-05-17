@@ -1,1 +1,4 @@
 name: SwapDance
+
+plugins:
+  - name: vyper
